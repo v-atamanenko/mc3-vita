@@ -17,6 +17,8 @@ set(VITA_VPKNAME "ModernCombat3")
 set(VITA_VERSION "01.00")
 set(VITA_MKSFOEX_FLAGS "-d ATTRIBUTE2=12")
 set(VITA_MAKE_FSELF_FLAGS "${VITA_MAKE_FSELF_FLAGS} -a 0x2800000000000000")
+add_definitions(-DTITLE_ID="${VITA_TITLEID}")
+
 # Optional: used for "send" and "dump" targets
 set(PSVITAIP "192.168.0.198" CACHE STRING "PSVita IP (for FTP access)")
 set(PARSECOREPATH "$ENV{PARSECOREPATH}" CACHE STRING "vita-parse-core main.py")
@@ -85,6 +87,7 @@ add_executable(${CMAKE_PROJECT_NAME}
                source/utils/init.c
                source/utils/logger.c
                source/utils/settings.c
+               source/utils/trophies.c
                source/utils/utils.c
                lib/pthread-svelte/source/cond_user.c
                lib/pthread-svelte/source/mutex_user.c
@@ -124,6 +127,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
                       ${CMAKE_BINARY_DIR}/lib/libc_bridge/stubs/libSceLibcBridge_stub.a
                       SceRazorHud_stub
                       SceRazorCapture_stub
+                      SceNpTrophy_stub
                       SceHid_stub
                       SceTouch_stub
                       SceMotion_stub
@@ -153,6 +157,7 @@ vita_create_vpk(${VITA_VPKNAME}.vpk ${VITA_TITLEID} eboot.bin
                 ${CMAKE_SOURCE_DIR}/extras/livearea/phantomunit.png sce_sys/livearea/contents/phantomunit.png
                 ${CMAKE_SOURCE_DIR}/extras/livearea/bg0.png sce_sys/livearea/contents/bg0.png
                 ${CMAKE_SOURCE_DIR}/extras/livearea/template.xml sce_sys/livearea/contents/template.xml
+                ${CMAKE_SOURCE_DIR}/extras/trophies/TROPHY.TRP sce_sys/trophy/${VITA_TITLEID}_00/TROPHY.TRP
                 )
 
 add_custom_target(send

@@ -12,8 +12,9 @@
 #include "utils/dialog.h"
 #include "utils/glutil.h"
 #include "utils/logger.h"
-#include "utils/utils.h"
 #include "utils/settings.h"
+#include "utils/trophies.h"
+#include "utils/utils.h"
 
 #include <string.h>
 
@@ -117,4 +118,14 @@ void soloader_init_all() {
 
     jni_init();
     l_success("FalsoJNI initialized.");
+
+    gl_init();
+    l_success("OpenGL initialized.");
+
+    if (trophies_init() < 0) {
+        warning("This game features unlockable trophies but NoTrpDrm is not installed. If you want to be able to unlock trophies, please install it.");
+        l_warn("Trophies initialization failed.");
+    } else {
+        l_success("Trophies initialized.");
+    }
 }

@@ -125,8 +125,8 @@ uint32_t FUN_00083594(char * param_1, int param_2) {
 
 so_hook audioThread_hook;
 void * audioThread(void * arg) {
+    // Move audio thread to 4th core if available
     int ret = sceKernelChangeThreadCpuAffinityMask(sceKernelGetThreadId(), 0x80000);
-    sceClibPrintf("audioThread spawned, set affinity ret: 0x%x\n", ret);
     return SO_CONTINUE(void *, audioThread_hook, arg);
 }
 

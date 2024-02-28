@@ -6,6 +6,7 @@
 #include <psp2/kernel/threadmgr/thread.h>
 #include <pthread.h>
 #include "utils/logger.h"
+#include "utils/trophies.h"
 
 /*
  * JNI Methods
@@ -92,6 +93,7 @@ void openGLLive(jmethodID id, va_list args) {
 void notifyTrophy(jmethodID id, va_list args) {
     jint arg1 = va_arg(args, jint);
     fjni_logv_info("notifyTrophy(%d)", arg1);
+    trophies_unlock(arg1 + 1);
 }
 
 void openIGP(jmethodID id, va_list args) {

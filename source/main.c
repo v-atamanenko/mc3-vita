@@ -267,12 +267,14 @@ void pollPad() {
 //SceGxmErrorCode sceGxmPadHeartbeat(const SceGxmColorSurface *displaySurface, SceGxmSyncObject *displaySyncObject);
 
 void * controls_thread() {
+    // Move to 4th core if available
+    sceKernelChangeThreadCpuAffinityMask(sceKernelGetThreadId(), 0x80000);
+
     while (1) {
         pollTouch();
         pollPad();
         sceKernelDelayThread(8335); // half a frame assuming 60fps
     }
-
 }
 
 void* game_thread() {
@@ -315,8 +317,6 @@ void* game_thread() {
     Game_nativeMC3Init(&jni, (jclass)0x42424242);
     l_info("Game_nativeMC3Init passed");
 
-    gl_init();
-
     int (* GL2JNILib_getViewSettings)() = (void *)so_symbol(&so_mod, "Java_com_gameloft_glf_GL2JNILib_getViewSettings");
     GL2JNILib_getViewSettings();
     l_info("GL2JNILib_getViewSettings passed");
@@ -336,8 +336,8 @@ void* game_thread() {
     l_info("Controls thread initialized");
 
     int (* GL2JNILib_step)() = (void *)so_symbol(&so_mod, "Java_com_gameloft_glf_GL2JNILib_step");
-    while (1) {
 
+    while (1) {
         GL2JNILib_step();
         gl_swap();
     }
