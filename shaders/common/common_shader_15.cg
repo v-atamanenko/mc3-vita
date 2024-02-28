@@ -1,0 +1,58 @@
+// profile sce_fp_psp2
+
+uniform sampler2D DiffuseMapSampler;
+uniform sampler2D Diffuse2MapSampler;
+
+uniform sampler2D LightMapSampler;
+uniform float4 lightmapFactor;
+
+uniform sampler2D BlendMapSampler;
+uniform float threshWidth;
+
+uniform float4 fogcolor;
+
+uniform float3 sunFactorA;
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float2 vBlendEdges : TEXCOORD3,
+	float vBlend : TEXCOORD2,
+	float2 vCoord1 : TEXCOORD1,
+	float fogFactor : TEXCOORD9,
+	float4 out gl_FragColor : COLOR
+) {
+	float4 color = tex2D(DiffuseMapSampler,  vCoord0);
+	float4 color2 = tex2D(Diffuse2MapSampler,  vCoord0);
+
+#ifdef BLENDMAP
+	float blendMap = tex2D(BlendMapSampler,  vCoord0).r;
+
+	float blend = clamp((blendMap - vBlendEdges.x) * vBlendEdges.y, 0.0, 1.0);
+	color.rgb = lerp(color2.rgb, color.rgb, blend);
+
+#elif defined(STEP)
+	float blendMap = tex2D(BlendMapSampler,  vCoord0).r;
+	float blend = clamp((blendMap - vBlend) * 1000.0, 0.0, 1.0);
+	//float blend = step(blendMap, vBlend);
+	color.rgb = lerp(color.rgb, color2.rgb, blend);
+#else
+	color.rgb = lerp(color.rgb, color2.rgb, vBlend);
+#endif
+
+#ifdef LIGHTMAP
+	float4 lightmap = tex2D(LightMapSampler,  vCoord1);
+	color *= lightmap * lightmapFactor;
+#endif
+
+#ifdef CG_FOG
+	color.rgb = lerp(color.rgb, fogcolor.rgb, fogFactor);
+#endif
+
+#ifdef GAMMA
+	color.rgb *= color.rgb;
+#endif
+
+	color.rgb += sunFactorA;
+
+	gl_FragColor = color;
+}

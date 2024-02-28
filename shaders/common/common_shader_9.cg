@@ -1,0 +1,112 @@
+// profile sce_fp_psp2
+
+#ifdef NORMALMAP
+	#define SPECULAR
+#endif
+
+uniform sampler2D DiffuseMapSampler;
+uniform float3 light0diffuseColor;
+uniform float4 SceneAmbientLight;
+uniform sampler2D NormalMapSampler;
+uniform samplerCUBE CubeMapSampler;
+uniform samplerCUBE NormalCubeSampler;
+uniform sampler2D SpecularMapSampler;
+
+uniform float4 fogcolor;
+uniform float specPower;
+uniform sampler2D RimLightMapSampler;
+
+uniform float3 sunFactorA;
+
+#define USE_ALPHA_TEXTURE
+#ifdef USE_ALPHA_TEXTURE
+uniform sampler2D DiffuseMapSampler_alpha;
+#endif
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float3 vNormal : TEXCOORD2,
+	float3 vDiffuse : TEXCOORD1,
+	float3 vEyeDirection : TEXCOORD6,
+	float fogFactor : TEXCOORD9,
+	float3 vHalf : TEXCOORD3,
+	float3 vSpecIntensity : TEXCOORD4,
+	float2 vRimCoord : TEXCOORD5,
+	float vReflectionAmount : TEXCOORD8,
+	float3 vReflection : TEXCOORD7,
+	float4 out gl_FragColor : COLOR
+) {
+#ifdef USE_ALPHA_TEXTURE
+	float4 Color = float4(tex2D(DiffuseMapSampler, vCoord0).rgb,
+	                        tex2D(DiffuseMapSampler_alpha, vCoord0).g);
+#else
+	float4 Color = tex2D(DiffuseMapSampler, vCoord0);
+#endif
+	Color.rgb *= vDiffuse;
+
+#ifdef CG_FOG
+	Color.rgb = lerp(Color.rgb, fogcolor.rgb, fogFactor);
+#endif
+
+#if defined(SPECULARMAP) || defined(REFLECTIONMAP)
+	float3 maps = tex2D(SpecularMapSampler, vCoord0).rgb;
+#endif
+
+#if defined(SPECULAR) || defined(CUBE)
+
+	#ifdef NORMALMAP
+	    float3 normal = (tex2D(NormalMapSampler, vCoord0)*2.0-1.0).xyz;
+	#else
+	    float3 normal = vNormal;
+	#endif
+
+#endif
+
+#ifdef SPECULAR
+
+	float power = specPower;
+	#if defined(SPECULARMAP) && !defined(UNIFORMPOWER)
+	    power *= maps.g;
+	#endif
+
+	float spec = max(dot(normal, texCUBE(NormalCubeSampler,vHalf).xyz*2.0-1.0),0.0);
+	#ifdef UNIFORMPOWER
+	    spec *= spec;
+	    spec *= spec;
+	    spec *= spec;
+	#else
+	    spec = pow(spec, power);
+	#endif
+
+	#ifdef SPECULARMAP
+	    spec *= maps.r;
+	#endif
+
+	Color.rgb += spec * vSpecIntensity;
+
+#endif
+
+#ifdef CUBE
+
+	#ifdef NORMALMAP
+	    float3 reflection = reflect(vEyeDirection, normal);
+	#else
+	    float3 reflection = vReflection;
+	#endif
+
+	float4 reflectionColor = texCUBE(CubeMapSampler, reflection);
+
+	#ifdef REFLECTIONMAP
+	    reflectionColor.rgb *= maps.b;
+	#endif
+
+	Color.rgb += reflectionColor.rgb * vReflectionAmount;
+#endif
+
+#ifdef RIM
+	Color.rgb += tex2D(RimLightMapSampler, vRimCoord).rgb;
+#endif
+	Color.rgb += sunFactorA;
+
+	gl_FragColor = Color;// * 0.001 + 20.0 * abs(texCUBE(NormalCubeSampler,debug.xyz)-dn);
+}

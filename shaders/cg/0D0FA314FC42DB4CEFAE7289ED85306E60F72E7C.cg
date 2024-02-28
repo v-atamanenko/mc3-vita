@@ -1,0 +1,28 @@
+// profile sce_vp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform float4x4 WorldViewProjectionMatrix;
+uniform float blurOffsetX;
+uniform float blurOffsetY;
+
+void main(
+	float4 Vertex,
+	float2 TexCoord0,
+	float2 out vCoord0 : TEXCOORD0,
+	float2 out vCoord1 : TEXCOORD1,
+	float2 out vCoord2 : TEXCOORD2,
+	float2 out vCoord3 : TEXCOORD3,
+	float2 out vCoord4 : TEXCOORD4,
+	float4 out gl_Position : POSITION,
+	float out gl_PointSize : PSIZE
+) {
+	gl_PointSize = 1.0f;
+	float2 uv = TexCoord0;
+	vCoord0 = uv;
+	vCoord1 = uv + 1.0 * float2(blurOffsetX, blurOffsetY);
+	vCoord2 = uv + 2.0 * float2(blurOffsetX, blurOffsetY);
+	vCoord3 = uv + 3.0 * float2(blurOffsetX, blurOffsetY);
+	vCoord4 = uv + 4.0 * float2(blurOffsetX, blurOffsetY);
+	gl_Position = mul(Vertex, WorldViewProjectionMatrix);
+}

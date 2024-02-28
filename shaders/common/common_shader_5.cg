@@ -1,0 +1,50 @@
+// profile sce_fp_psp2
+
+uniform sampler2D texture0;
+uniform sampler2D texture1;
+uniform float threshold;
+uniform float bloomFactor;
+
+uniform float2 texelSize;
+uniform float2 invert;
+
+uniform float random;
+
+uniform float effectFactor;
+
+float4 screen(float4 a, float4 b)
+{
+	return b + (a * (1.0-b));
+}
+
+void main(
+	float2 vCoordSource : TEXCOORD5,
+	float2 vCoordBlur0 : TEXCOORD0,
+	float2 vCoordBlur1 : TEXCOORD1,
+	float2 vCoordBlur2 : TEXCOORD2,
+	float2 vCoordBlur3 : TEXCOORD3,
+	float vBlurFactor : TEXCOORD9,
+	float vGammaFactor : TEXCOORD7,
+	float4 vFlashColor : COLOR0,
+	float4 out gl_FragColor : COLOR
+) {
+	float4 color = tex2D(texture0, vCoordSource);
+#ifdef BLUR
+	float4 blur = float4(0.0);
+	blur += 0.25 * tex2D(texture1, vCoordBlur0);
+	blur += 0.25 * tex2D(texture1, vCoordBlur1);
+	blur += 0.25 * tex2D(texture1, vCoordBlur2);
+	blur += 0.25 * tex2D(texture1, vCoordBlur3);
+
+	// Initial level
+	color = lerp(color, blur, vBlurFactor);
+#endif
+
+	float4 highColor = color*color;
+	highColor *= highColor;
+	highColor *= highColor;
+
+	color = vFlashColor + lerp(color, highColor, vGammaFactor);
+
+	gl_FragColor = color;
+}

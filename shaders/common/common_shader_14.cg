@@ -1,0 +1,45 @@
+// profile sce_vp_psp2
+
+
+uniform float3 light0position;
+uniform float4x4 WorldViewProjectionMatrix;
+uniform float4x4 matWorldIT;
+uniform float4x4 matworldviewit;
+uniform float4x4 WorldViewT;
+
+uniform float threshWidth;
+
+uniform float4x4 matWorldT;
+uniform float2 fogstartend;
+
+void main(
+	float4 Vertex,
+	float3 Color,
+	float2 TexCoord0,
+	float2 TexCoord1,
+	float2 out vCoord0 : TEXCOORD0,
+	float2 out vBlendEdges : TEXCOORD3,
+	float out vBlend : TEXCOORD2,
+	float2 out vCoord1 : TEXCOORD1,
+	float out fogFactor : TEXCOORD9,
+	float4 out gl_Position : POSITION
+) {
+	gl_Position = mul(Vertex, WorldViewProjectionMatrix);
+	vCoord0 = TexCoord0;
+
+#ifdef LIGHTMAP
+	vCoord1 = TexCoord1;
+#endif
+
+#ifdef BLENDMAP
+	vBlendEdges.x = Color.r - threshWidth*0.5;
+	vBlendEdges.y = 1.0 / threshWidth;
+#else
+	vBlend = Color.r;
+#endif
+
+#ifdef CG_FOG
+	float depth = dot(WorldViewT[2], Vertex);
+	fogFactor = clamp((-depth - fogstartend[0])/(fogstartend[1] - fogstartend[0]), 0.0, 1.0);
+#endif
+}

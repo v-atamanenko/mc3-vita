@@ -1,0 +1,31 @@
+// profile sce_fp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform sampler2D texture0;
+
+uniform float2 center;
+uniform float circleRayIn;
+uniform float circleRayOut;
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float2 vCoord1 : TEXCOORD1,
+	float2 vCoord2 : TEXCOORD2,
+	float2 vCoord3 : TEXCOORD3,
+	float2 vCoord4 : TEXCOORD4,
+	float2 v0c : COLOR0,
+	float4 out gl_FragColor : COLOR
+) {
+	float distanceFromCenter = length(v0c);
+	float w1 = 0.2 * smoothstep(circleRayIn, circleRayOut, distanceFromCenter);
+	float w0 = (1.0 - 4.0 * w1);
+
+	float4 color = w0 * tex2D(texture0, vCoord0);
+	color += w1 * tex2D(texture0, vCoord1);
+	color += w1 * tex2D(texture0, vCoord2);
+	color += w1 * tex2D(texture0, vCoord3);
+	color += w1 * tex2D(texture0, vCoord4);
+
+	gl_FragColor = color;
+}

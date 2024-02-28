@@ -1,0 +1,9 @@
+// profile sce_fp_psp2
+
+#define GLITCH_OPENGLES_2
+
+void main(
+	float4 out gl_FragColor : COLOR
+) {
+	gl_FragColor = float4(0.8, 0.3, 0.5, 1.0);
+}

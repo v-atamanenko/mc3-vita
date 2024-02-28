@@ -1,0 +1,76 @@
+// profile sce_vp_psp2
+
+// Input
+#ifdef ALPHA
+#endif
+
+uniform float4x4 WorldViewProjectionMatrix;
+uniform float4x4 matWorldView;
+uniform float4x4 WorldViewT;
+
+uniform float4x4 matWorldIT;
+uniform float4x4 matViewI;
+uniform float4x4 matWorld;
+uniform float4x4 matWorldI;
+uniform float4x4 matWorldT;
+uniform float fresnelPower;
+uniform float4 minReflectionAmount;
+uniform float4 maxReflectionAmount;
+
+uniform float2 fogstartend;
+
+uniform float3 downColor;
+uniform float3 horizonColor;
+uniform float downAlpha;
+uniform float horizonAlpha;
+uniform float2 uvOffset;
+
+void main(
+	float4 Vertex,
+	float3 Normal,
+	float3 Tangent,
+	float3 Binormal,
+	float2 TexCoord0,
+	float4 color,
+	float2 out vCoord : TEXCOORD0,
+	float4 out vDebug : TEXCOORD4,
+	float3 out vEyeDirection : TEXCOORD6,
+	float4 out vEyePosition : TEXCOORD5,
+	float out vFogFactor : TEXCOORD9,
+	float4 out vPosition : TEXCOORD2,
+	float4 out vBaseColor : TEXCOORD3,
+	float4 out gl_Position : POSITION
+) {
+	vPosition = mul(Vertex, matWorld);
+
+	gl_Position = mul(Vertex, WorldViewProjectionMatrix);
+
+	vCoord = TexCoord0.xy + uvOffset;
+
+	// Eye position
+	//float4 eyePosition = matWorldI * matViewI[3];
+	vEyeDirection = normalize(matViewI[3].xyz - vPosition.xyz);
+	//vEyePosition = matViewI[3];
+	vEyeDirection.y = abs(vEyeDirection.y);
+	float baseFactor = vEyeDirection.y;
+	baseFactor = pow(baseFactor,0.25);
+	vBaseColor.rgb = lerp(horizonColor, downColor, baseFactor);
+
+#ifdef ALPHA
+	vBaseColor.a = lerp(horizonAlpha, downAlpha, baseFactor);
+	vBaseColor.a *= color.a;
+#else
+	vBaseColor.a = 1.0;
+#endif
+	// Base color
+
+
+	// Tangent space conversions
+	//yeDirection = eyeDirection.xzy;//normalize(objectToTangent * eyeDirection);
+
+#ifdef CG_FOG
+	float depth = dot(WorldViewT[2], Vertex);
+	vFogFactor = clamp((-depth - fogstartend[0])/(fogstartend[1] - fogstartend[0]), 0.0, 1.0);
+#endif
+
+}

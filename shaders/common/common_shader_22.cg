@@ -1,0 +1,79 @@
+// profile sce_fp_psp2
+
+uniform sampler2D DiffuseMapSampler;
+uniform sampler2D LightMapSampler;
+uniform sampler2D LightMapSampler2;
+uniform sampler2D ReflectionMapSampler;
+uniform samplerCUBE CubeMapSampler;
+uniform float lightMapSetFactor;
+uniform float4 lightmapFactor;
+
+uniform sampler2D DetailMapSampler;
+uniform float2 detailTile;
+uniform float detailAmount;
+
+uniform float4 fogcolor;
+
+uniform float minReflectionAmount;
+uniform float maxReflectionAmount;
+
+#define USE_ALPHA_TEXTURE
+#ifdef USE_ALPHA_TEXTURE
+uniform sampler2D DiffuseMapSampler_alpha;
+#endif
+
+uniform float3 sunFactorA;
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float2 vCoord1 : TEXCOORD1,
+	float fogFactor : TEXCOORD9,
+	float3 vReflection : TEXCOORD7,
+	float4 out gl_FragColor : COLOR
+) {
+#ifdef USE_ALPHA_TEXTURE
+	float4 color = float4(tex2D(DiffuseMapSampler,  vCoord0).rgb,
+	                        tex2D(DiffuseMapSampler_alpha,  vCoord0).g);
+#else
+	float4 color = tex2D(DiffuseMapSampler,  vCoord0);
+#endif
+
+	float4 lightmap = tex2D(LightMapSampler,  vCoord1);
+
+#ifdef DUAL
+	float4 lightmap2 = tex2D(LightMapSampler2,  vCoord1);
+	lightmap = lerp(lightmap, lightmap2, lightMapSetFactor);
+#endif
+
+	lightmap *= lightmapFactor;
+
+#ifdef DETAIL
+	float4 detailmap = (tex2D(DetailMapSampler,  vCoord0 * detailTile)-0.5);
+	color += detailmap * detailAmount;
+#endif
+
+	color.rgb *= lightmap.rgb;
+
+#ifdef CUBE
+
+	float4 reflectedColor = texCUBE(CubeMapSampler, vReflection);
+	reflectedColor *= minReflectionAmount + (lightmap * maxReflectionAmount - minReflectionAmount);
+	#ifdef REFLECTIONMAP
+	    float4 reflectionMap = tex2D(ReflectionMapSampler,  vCoord0);
+	    reflectedColor *= reflectionMap;
+	#endif
+	color += reflectedColor;
+#endif
+
+#ifdef CG_FOG
+	color.xyz = lerp(color.xyz, fogcolor.xyz, fogFactor);
+#endif //CG_FOG
+
+	color.rgb += sunFactorA;
+
+#ifdef GAMMA
+	color.rgb *= color.rgb;
+#endif
+
+	gl_FragColor = color;
+}

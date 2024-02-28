@@ -37,16 +37,24 @@ FILE * fopen_soloader(const char * filename, const char * mode) {
         return fopen_soloader("app0:/meminfo", mode);
     }
 
+    char * fname_real = strdup(filename);
+
+    str_replace(&fname_real, "./sdcard/Android/data/com.gameloft.android.ANMP.GloftM3HM/files//", DATA_PATH);
+    str_replace(&fname_real, "/sdcard/Android/data/com.gameloft.android.ANMP.GloftM3HM/files//", DATA_PATH);
+    str_replace(&fname_real, "/data/data/com.gameloft.android.ANMP.GloftM3HM/", DATA_PATH);
+
 #ifdef USE_SCELIBC_IO
-    FILE* ret = sceLibcBridge_fopen(filename, mode);
+    FILE* ret = sceLibcBridge_fopen(fname_real, mode);
 #else
-    FILE* ret = fopen(filename, mode);
+    FILE* ret = fopen(fname_real, mode);
 #endif
 
-    if (ret)
-        l_debug("fopen(%s, %s): %p", filename, mode, ret);
-    else
-        l_warn("fopen(%s, %s): %p", filename, mode, ret);
+    //if (!ret)
+//        l_debug("fopen(%s, %s): %p", fname_real, mode, ret);
+  //  else
+    //    l_warn("fopen(%s, %s): %p", fname_real, mode, ret);
+
+    free(fname_real);
 
     return ret;
 }
@@ -67,12 +75,18 @@ int open_soloader(const char * path, int oflag, ...) {
         va_end(args);
     }
 
+    char * fname_real = strdup(path);
+
+    str_replace(&fname_real, "./sdcard/Android/data/com.gameloft.android.ANMP.GloftM3HM/files//", DATA_PATH);
+    str_replace(&fname_real, "/sdcard/Android/data/com.gameloft.android.ANMP.GloftM3HM/files//", DATA_PATH);
+
     oflag = oflags_bionic_to_newlib(oflag);
-    int ret = open(path, oflag, mode);
+    int ret = open(fname_real, oflag, mode);
     if (ret >= 0)
-        l_debug("open(%s, %x): %i", path, oflag, ret);
+        l_debug("open(%s, %x): %i", fname_real, oflag, ret);
     else
-        l_warn("open(%s, %x): %i", path, oflag, ret);
+        l_warn("open(%s, %x): %i", fname_real, oflag, ret);
+    free(fname_real);
     return ret;
 }
 
@@ -105,7 +119,7 @@ int fclose_soloader(FILE * f) {
     int ret = fclose(f);
 #endif
 
-    l_debug("fclose(%p): %i", f, ret);
+    //l_debug("fclose(%p): %i", f, ret);
     return ret;
 }
 

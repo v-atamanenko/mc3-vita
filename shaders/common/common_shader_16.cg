@@ -1,0 +1,37 @@
+// profile sce_fp_psp2
+
+uniform sampler2D DiffuseMapSampler;
+
+#ifdef CG_FOG
+uniform float4 fogcolor;
+#endif //CG_FOG
+
+uniform float3 sunFactorA;
+
+#define USE_ALPHA_TEXTURE
+#ifdef USE_ALPHA_TEXTURE
+uniform sampler2D DiffuseMapSampler_alpha;
+#endif
+
+void main(
+	float fogFactor : TEXCOORD9,
+	float4 vColor0 : COLOR0,
+	float2 vTexCoord0 : TEXCOORD0,
+	float4 out gl_FragColor : COLOR
+) {
+	float4 color = vColor0;
+#ifdef USE_ALPHA_TEXTURE
+	color *= float4(tex2D(DiffuseMapSampler,  vTexCoord0).rgb,
+	                tex2D(DiffuseMapSampler_alpha,  vTexCoord0).g);
+#else
+	color *= tex2D(DiffuseMapSampler,  vTexCoord0);
+#endif
+
+#ifdef CG_FOG
+	color.xyz = lerp(color.xyz, fogcolor.xyz, fogFactor);
+#endif //CG_FOG
+
+	color.rgb += sunFactorA;
+
+	gl_FragColor = color;
+}

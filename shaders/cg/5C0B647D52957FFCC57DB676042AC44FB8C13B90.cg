@@ -1,0 +1,18 @@
+// profile sce_fp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform sampler2D texture0;
+uniform sampler2D texture1;
+
+uniform float scale;
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float2 vCoord1 : TEXCOORD1,
+	float4 out gl_FragColor : COLOR
+) {
+	float2 normal = tex2D(texture1, vCoord1).xy + float2(-0.5,-0.5);
+	float2 uv = vCoord0 + normal * float2(scale,scale);
+	gl_FragColor = tex2D(texture0, uv);
+}

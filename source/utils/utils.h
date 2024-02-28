@@ -193,6 +193,11 @@ bool str_ends_with(const char * str, const char * suffix);
  */
 char * str_sha1sum(const char * str, size_t size);
 
+typedef struct known_shaders_struct {
+    char engine_name[42];
+    char real_name[42];
+} known_shaders_struct;
+
 #ifdef __cplusplus
 };
 #endif

@@ -1,0 +1,36 @@
+// profile sce_vp_psp2
+
+#define TEXTURE_1D 0
+#define TEXTURE_2D 1
+#define TEXTURE_3D 2
+#define TEXTURE_CUBE_MAP 3
+#define TEXTURE_RECT 4
+
+#ifndef TEXTURE_TYPE
+	#define TEXTURE_TYPE TEXTURE_2D
+#endif
+
+#if TEXTURE_TYPE == TEXTURE_3D
+	#undef TEXTURE_TYPE
+	#define TEXTURE_TYPE TEXTURE_2D
+#elif TEXTURE_TYPE == TEXTURE_RECT
+	#undef TEXTURE_TYPE
+	#define TEXTURE_TYPE TEXTURE_2D
+#endif
+
+void main(
+	float4 Vertex,
+#if TEXTURE_TYPE == TEXTURE_CUBE_MAP
+	float3 TexCoord0,
+	float3 out vCoord0 : TEXCOORD0,
+#else
+	float2 TexCoord0,
+	float2 out vCoord0 : TEXCOORD0,
+#endif
+	float4 out gl_Position : POSITION,
+	float out gl_PointSize : PSIZE
+) {
+	gl_PointSize = 1.0f;
+	vCoord0 = TexCoord0;
+	gl_Position = Vertex;
+}

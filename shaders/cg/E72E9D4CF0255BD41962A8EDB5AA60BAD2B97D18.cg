@@ -1,0 +1,37 @@
+// profile sce_fp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform sampler2D texture0;
+
+uniform float3 additiveColor;
+uniform float3 multiplyColor;
+
+uniform float desaturation;
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float2 vCoord1 : TEXCOORD1,
+	float2 vCoord2 : TEXCOORD2,
+	float2 vCoord3 : TEXCOORD3,
+	float2 vCoord4 : TEXCOORD4,
+	float4 out gl_FragColor : COLOR
+) {
+	// radial blur
+	float4 color = 0.2 * tex2D(texture0, vCoord0);
+	color += 0.2 * tex2D(texture0, vCoord1);
+	color += 0.2 * tex2D(texture0, vCoord2);
+	color += 0.2 * tex2D(texture0, vCoord3);
+	color += 0.2 * tex2D(texture0, vCoord4);
+
+	// desaturate
+	float average = 0.33 * (color.r + color.g + color.b);
+	color.rgb = lerp(color.rgb, float3(average,average,average), desaturation);
+
+	// adjust colors
+	color.rgb *= multiplyColor;
+	color.rgb += additiveColor;
+
+	gl_FragColor = color;
+}
+

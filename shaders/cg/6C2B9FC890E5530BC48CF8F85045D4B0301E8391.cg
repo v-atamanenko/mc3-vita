@@ -1,0 +1,17 @@
+// profile sce_fp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform sampler2D texture0;
+uniform sampler2D texture1;
+uniform float interpolation;
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float4 out gl_FragColor : COLOR
+) {
+	float4 texColor0 = tex2D(texture0, vCoord0);
+	float4 texColor1 = tex2D(texture1, vCoord0);
+
+	gl_FragColor = lerp(texColor0, texColor1, interpolation);
+}

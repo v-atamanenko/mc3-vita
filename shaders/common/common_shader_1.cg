@@ -1,0 +1,76 @@
+// profile sce_fp_psp2
+
+uniform sampler2D texture0;
+uniform sampler2D texture1;
+uniform float threshold;
+uniform float bloomFactor;
+
+uniform float2 texelSize;
+uniform float2 invert;
+uniform float infraLinesFactor;
+
+uniform float random;
+
+float4 screen(float4 a, float4 b) {
+	return b + (a * (1.0-b));
+}
+
+void main(
+	float2 vCoordSource : TEXCOORD5,
+	float2 vCoordDecimated : TEXCOORD4,
+	float2 vCoordBlur0 : TEXCOORD0,
+	float2 vCoordBlur1 : TEXCOORD1,
+	float2 vCoordBlur2 : TEXCOORD2,
+	float2 vCoordBlur3 : TEXCOORD3,
+	float4 gl_FragCoord : WPOS,
+	float4 out gl_FragColor : COLOR
+) {
+	float color = tex2D(texture0, vCoordSource).r;
+
+	float blur = 0.0;
+#ifdef BLUR
+	float4 b = float4(tex2D(texture1, vCoordBlur0).g,
+	                  tex2D(texture1, vCoordBlur1).g,
+	                  tex2D(texture1, vCoordBlur2).g,
+	                  tex2D(texture1, vCoordBlur3).g);
+
+	blur = dot(float4(0.25),b);
+
+	float line = 0.5;
+#else
+	float line = 1.0;
+#endif
+
+	// Horizontal lines in screen
+#ifdef LINES
+	line = min(0.5,fmod(gl_FragCoord.x,2.0)*0.5+infraLinesFactor);
+#endif
+
+	// Initial level
+	float level = blur + color * line;
+
+	// Noise
+#ifdef NOISE
+	float2 co = vCoordSource;
+	float r = random;
+	float2 seed = co+r;
+	float2 d = float2(12.9898,78.233);
+	float rand = frac(sin(dot(seed ,d)) * 43758.5453);
+	float noise = rand * 0.14 - 0.07;
+	level += noise;
+#endif
+
+	// Negative
+	//level = invert.x + invert.y * clamp(level, 0.0,1.1);
+#ifdef INVERTED
+	level = 1.0 - level;
+#endif
+
+#ifdef TINT
+	float4 tint = float4(0.90, 1.00, 0.96,1.0); // Tint
+
+	gl_FragColor = level * tint;
+#else
+	gl_FragColor = float4(level);
+#endif
+}

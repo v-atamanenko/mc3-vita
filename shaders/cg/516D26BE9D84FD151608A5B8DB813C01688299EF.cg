@@ -1,0 +1,14 @@
+// profile sce_fp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform sampler2D DiffuseSampler;
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float4 vColor : TEXCOORD1,
+	float4 out gl_FragColor : COLOR
+) {
+	float4 diffuseMap = tex2D(DiffuseSampler,  vCoord0);
+	gl_FragColor = diffuseMap * vColor;
+}

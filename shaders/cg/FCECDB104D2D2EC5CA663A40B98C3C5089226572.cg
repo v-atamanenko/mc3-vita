@@ -1,0 +1,43 @@
+// profile sce_vp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform float4x4 WorldViewProjectionMatrix;
+uniform float2 texelSize;
+uniform float2 decimatedTexelSize;
+
+uniform float effectFactor;
+
+void main(
+	float4 Vertex,
+	float2 TexCoord0,
+	float2 TexCoord1,
+	float2 out vCoordSource : TEXCOORD5,
+	float2 out vCoordBlur0 : TEXCOORD0,
+	float2 out vCoordBlur1 : TEXCOORD1,
+	float2 out vCoordBlur2 : TEXCOORD2,
+	float2 out vCoordBlur3 : TEXCOORD3,
+	float out vBlurFactor : TEXCOORD9,
+	float out vGammaFactor : TEXCOORD7,
+	float4 out vFlashColor : COLOR0,
+	float4 out gl_Position : POSITION,
+	float out gl_PointSize : PSIZE
+) {
+	gl_PointSize = 1.0f;
+	vCoordSource = TexCoord0 + float2(0.5 * texelSize.x,0.5 * texelSize.x);
+	float2 uv = TexCoord1;
+	//vCoordDecimated = uv;
+	float2 offset = decimatedTexelSize;
+	vCoordBlur0 = uv + float2( offset.x,  offset.y);
+	vCoordBlur1 = uv + float2(-offset.x,  offset.y);
+	vCoordBlur2 = uv + float2( offset.x, -offset.y);
+	vCoordBlur3 = uv + float2(-offset.x, -offset.y);
+
+	vBlurFactor = pow(effectFactor,0.4);
+	vGammaFactor = pow(effectFactor,1.0);
+	float flashFactor = pow(effectFactor,3.0);
+
+	vFlashColor = float4(1.2,1.1,1.0,1.0) * flashFactor;
+
+	gl_Position = mul(Vertex, WorldViewProjectionMatrix);
+}

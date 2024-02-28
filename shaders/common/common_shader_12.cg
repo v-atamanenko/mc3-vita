@@ -1,0 +1,102 @@
+// profile sce_vp_psp2
+
+#ifdef TEXTURED
+uniform float4x4 TextureMatrix0;
+#endif
+
+#ifdef MULTITEXTURED
+uniform float4x4 matWorldViewIT;
+#endif
+
+#ifdef LIGHTMAP
+uniform float4x4 TextureMatrix2;
+#endif
+
+uniform float4x4 WorldViewProjectionMatrix;
+
+#ifdef CG_FOG
+uniform float4x4 WorldViewT;
+uniform float2 fogstartend;
+#endif //CG_FOG
+
+#if defined LIGHTING || defined MULTITEXTURED
+uniform float4x4 matWorldIT;
+#endif
+
+#ifdef LIGHTING
+uniform float4 Light0Position;
+uniform float4 Light0Diffusecolor;
+
+uniform float4 SceneAmbientLight;
+#endif //LIGHTING
+
+void main(
+	float4 Position,
+	float4 Color0,
+#ifdef TEXTURED
+	float2 TexCoord0,
+#endif
+#ifdef LIGHTMAP
+#ifdef TEXTURED
+	#define LightMapCoord TexCoord1
+	float2 TexCoord1,
+#else
+	#define LightMapCoord TexCoord0
+	float2 TexCoord0,
+#endif
+#endif
+#if defined LIGHTING || defined MULTITEXTURED
+	float3 Normal,
+#endif
+#ifdef TEXTURED
+	float2 out vTexCoord0 : TEXCOORD0,
+#endif
+#ifdef MULTITEXTURED
+	float2 out vTexCoord1 : TEXCOORD1,
+#endif
+#ifdef LIGHTMAP
+	float2 out vTexCoord2 : TEXCOORD2,
+#endif
+#ifdef CG_FOG
+	float out fogFactor : TEXCOORD9,
+#endif
+	float4 out vColor0 : COLOR0,
+	float4 out gl_Position : POSITION,
+	float out gl_PointSize : PSIZE
+) {
+	gl_PointSize = 1.0f;
+	gl_Position = mul(Position, WorldViewProjectionMatrix);
+
+#if defined LIGHTING || defined MULTITEXTURED
+	float3 transformedNormal = mul(float4(Normal, 0.0), matWorldIT).xyz;
+#endif
+#ifdef CG_FOG
+	float depth = dot(WorldViewT[2], Position);
+#endif
+
+#ifdef TEXTURED
+	vTexCoord0 = mul(float4(TexCoord0, 1, 0), TextureMatrix0).xy;
+#endif
+#ifdef MULTITEXTURED
+	float2 n = mul(float4(Normal, 1), matWorldViewIT).xy;
+	vTexCoord1.x = n.x * 0.5 + 0.5;
+	vTexCoord1.y = 0.5 - n.y * 0.5;
+#endif
+#ifdef LIGHTMAP
+	vTexCoord2 = mul(float4(LightMapCoord, 1, 0), TextureMatrix2).xy;
+#endif
+
+#ifdef CG_FOG
+	fogFactor = clamp((-depth - fogstartend[0])/(fogstartend[1] - fogstartend[0]), 0.0, 1.0);
+#endif
+
+#ifdef LIGHTING
+	// light 0 (directional light)
+	float3 VP = Light0Position.xyz;
+	float nDotVP = max(0.0, dot(transformedNormal, VP));
+	float4 Diffuse = Light0Diffusecolor * nDotVP;
+	vColor0 = SceneAmbientLight + Diffuse;
+#else
+	vColor0 = Color0;
+#endif
+}

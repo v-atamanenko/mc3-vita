@@ -1,0 +1,20 @@
+// profile sce_vp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform float4x4 WorldViewProjectionMatrix;
+uniform float2 texelSize;
+
+void main(
+	float4 Vertex,
+	float2 TexCoord0,
+	float2 TexCoord1,
+	float2 out vCoordSource : TEXCOORD5,
+	float2 out vCoordDecimated : TEXCOORD4,
+	float4 out gl_Position : POSITION,
+	float out gl_PointSize : PSIZE
+) {
+	gl_PointSize = 1.0f;
+	vCoordDecimated = TexCoord1;
+	gl_Position = mul(Vertex, WorldViewProjectionMatrix);
+}

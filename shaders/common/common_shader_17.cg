@@ -1,0 +1,21 @@
+// profile sce_fp_psp2
+
+uniform sampler2D DiffuseMapSampler;
+uniform sampler2D GeneratedWaterNormals;
+uniform float4 DiffuseColor;
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float4 vColor : TEXCOORD1,
+	float4 out gl_FragColor : COLOR
+) {
+#ifdef WATER
+	float4 color = tex2D(GeneratedWaterNormals,  vCoord0) * DiffuseColor;
+	color.a = vColor.a;
+	gl_FragColor = color;
+#else
+	float4 color = tex2D(DiffuseMapSampler,  vCoord0);
+	color.a = vColor.a;
+	gl_FragColor = color;
+#endif
+}

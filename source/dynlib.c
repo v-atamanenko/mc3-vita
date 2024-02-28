@@ -53,6 +53,8 @@
 #include "reimpl/time64.h"
 #include "reimpl/asset_manager.h"
 
+#include "pthread-svelte/include/pthread_svelte.h"
+
 const unsigned int __page_size = PAGE_SIZE;
 
 extern void * _ZNSt9exceptionD2Ev;
@@ -132,7 +134,122 @@ void *dlsym_soloader(void * handle, const char * symbol) {
     return NULL;
 }
 
+int32_t glGetUniformLocation_wrap(uint32_t prog, const char * name) {
+    if (strcmp(name, "texture") == 0)
+        return glGetUniformLocation(prog, "glitch_texture");
+
+    return glGetUniformLocation(prog, name);
+}
+
+void glGetActiveUniform_wrap(GLuint prog, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) {
+    glGetActiveUniform(prog, index, bufSize, length, size, type, name);
+    if (strcmp(name, "glitch_texture") == 0) {
+        strcpy(name, "texture");
+        if (length)
+            *length = 7;
+    }
+
+    if (strcmp(name, "WorldViewProjectionMatrix") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matWorld") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matworldi") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matWorldIT") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matWorldViewIT") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matWorldView") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matWorldViewI") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "TextureMatrix0") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "TextureMatrix2") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matWorldT") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matViewI") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matviewi") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "matWorldI") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "WorldViewT") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "TextureMatrix") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+    if (strcmp(name, "texturemat0") == 0) {
+        *type = GL_FLOAT_MAT4;
+        *size = 1;
+    }
+}
+
+void glTexImage2D_hook(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *data) {
+    if (level == 0)
+        glTexImage2D(target, level, internalFormat, width, height, border, format, type, data);
+}
+
+void glCompressedTexImage2D_hook(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data) {
+    if (level == 0)
+        glCompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, data);
+}
+
+void * malloc_wrap(size_t sz) {
+    void * ret = malloc(sz);
+    memset(ret, 0, sz);
+    return ret;
+}
+
 so_default_dynlib default_dynlib[] = {
+        { "sinhf", (uintptr_t)&sinhf },
+        { "glVertexAttrib4fv", (uintptr_t)&glVertexAttrib4fv },
+        { "getpid", (uintptr_t)&getpid },
+        { "gmtime64", (uintptr_t)&gmtime64 },
+        { "mktime64", (uintptr_t)&mktime64 },
+        { "getpagesize", (uintptr_t)&getpagesize },
+        { "__android_log_assert", (uintptr_t)&__android_log_assert },
+        { "localtime64", (uintptr_t)&localtime64 },
+        { "AAssetManager_fromJava", (uintptr_t)&ret1 },
+        { "AAsset_read", (uintptr_t)&AAsset_read },
+        { "AAsset_close", (uintptr_t)&AAsset_close },
+        { "AAssetManager_open", (uintptr_t)&AAssetManager_open },
+        { "AAsset_seek", (uintptr_t)&AAsset_seek },
+        { "AAsset_getRemainingLength", (uintptr_t)&AAsset_getRemainingLength },
+        { "AAsset_getLength", (uintptr_t)&AAsset_getLength },
+        { "AAssetDir_close", (uintptr_t)&AAssetDir_close },
+        { "AAssetManager_openDir", (uintptr_t)&AAssetManager_openDir },
+
         // Common C/C++ internals
         { "_ZNSt8bad_castD1Ev", (uintptr_t)&_ZNSt8bad_castD1Ev },
         { "_ZNSt9exceptionD2Ev", (uintptr_t)&_ZNSt9exceptionD2Ev },
@@ -237,22 +354,9 @@ so_default_dynlib default_dynlib[] = {
 
 
         // Android SDK standard logging
-        { "__android_log_assert", (uintptr_t)&__android_log_assert },
         { "__android_log_print", (uintptr_t)&__android_log_print },
         { "__android_log_vprint", (uintptr_t)&__android_log_vprint },
         { "__android_log_write", (uintptr_t)&__android_log_write },
-
-
-        // AAssetManager
-        { "AAsset_close", (uintptr_t)&AAsset_close },
-        { "AAsset_getLength", (uintptr_t)&AAsset_getLength },
-        { "AAsset_getRemainingLength", (uintptr_t)&AAsset_getRemainingLength },
-        { "AAsset_read", (uintptr_t)&AAsset_read },
-        { "AAsset_seek", (uintptr_t)&AAsset_seek },
-        { "AAssetDir_close", (uintptr_t)&AAssetDir_close },
-        { "AAssetManager_fromJava", (uintptr_t)&ret1 },
-        { "AAssetManager_open", (uintptr_t)&AAssetManager_open },
-        { "AAssetManager_openDir", (uintptr_t)&AAssetManager_openDir },
 
 
         // Math
@@ -301,7 +405,6 @@ so_default_dynlib default_dynlib[] = {
         { "sincosf", (uintptr_t)&sincosf },
         { "sinf", (uintptr_t)&sinf },
         { "sinh", (uintptr_t)&sinh },
-        { "sinhf", (uintptr_t)&sinhf },
         { "sqrt", (uintptr_t)&sqrt },
         { "sqrtf", (uintptr_t)&sqrtf },
         { "tan", (uintptr_t)&tan },
@@ -601,12 +704,13 @@ so_default_dynlib default_dynlib[] = {
         { "glGenRenderbuffersOES", (uintptr_t)&glGenRenderbuffers },
         { "glGenTextures", (uintptr_t)&glGenTextures },
         { "glGetActiveAttrib", (uintptr_t)&glGetActiveAttrib },
-        { "glGetActiveUniform", (uintptr_t)&glGetActiveUniform },
+        { "glGetActiveUniform", (uintptr_t)&glGetActiveUniform_wrap },
         { "glGetAttribLocation", (uintptr_t)&glGetAttribLocation },
         { "glGetBooleanv", (uintptr_t)&glGetBooleanv },
         { "glGetBufferParameteriv", (uintptr_t)&glGetBufferParameteriv },
         { "glGetBufferPointervOES", (uintptr_t)&ret0 },
         { "glGetClipPlanef", (uintptr_t)&ret0 },
+        { "glGetClipPlanex", (uintptr_t)&ret0 },
         { "glGetClipPlanex", (uintptr_t)&ret0 },
         { "glGetError", (uintptr_t)&glGetError },
         { "glGetFixedv", (uintptr_t)&ret0 },
@@ -634,7 +738,7 @@ so_default_dynlib default_dynlib[] = {
         { "glGetTexParameterfv", (uintptr_t)&ret0 },
         { "glGetTexParameteriv", (uintptr_t)&ret0 },
         { "glGetTexParameterxv", (uintptr_t)&ret0 },
-        { "glGetUniformLocation", (uintptr_t)&glGetUniformLocation },
+        { "glGetUniformLocation", (uintptr_t)&glGetUniformLocation_wrap },
         { "glHint", (uintptr_t)&glHint },
         { "glIsBuffer", (uintptr_t)&ret0 },
         { "glIsEnabled", (uintptr_t)&glIsEnabled },
@@ -748,7 +852,6 @@ so_default_dynlib default_dynlib[] = {
         { "glUseProgram", (uintptr_t)&glUseProgram },
         { "glValidateProgram", (uintptr_t)&ret0 },
         { "glVertexAttrib4f", (uintptr_t)&glVertexAttrib4f },
-        { "glVertexAttrib4fv", (uintptr_t)&glVertexAttrib4fv },
         { "glVertexAttribPointer", (uintptr_t)&glVertexAttribPointer },
         { "glVertexPointer", (uintptr_t)&glVertexPointer },
         { "glViewport", (uintptr_t)&glViewport },
@@ -762,12 +865,12 @@ so_default_dynlib default_dynlib[] = {
         { "pthread_attr_setstacksize", (uintptr_t) &pthread_attr_setstacksize_soloader },
         { "pthread_attr_setschedparam", (uintptr_t) &ret0 },
 
-        { "pthread_cond_broadcast", (uintptr_t) &pthread_cond_broadcast_soloader },
-        { "pthread_cond_destroy", (uintptr_t) &pthread_cond_destroy_soloader },
-        { "pthread_cond_init", (uintptr_t) &pthread_cond_init_soloader },
-        { "pthread_cond_signal", (uintptr_t) &pthread_cond_signal_soloader },
-        { "pthread_cond_timedwait", (uintptr_t) &pthread_cond_timedwait_soloader },
-        { "pthread_cond_wait", (uintptr_t) &pthread_cond_wait_soloader },
+        { "pthread_cond_broadcast", (uintptr_t) &pthread_svelte_cond_broadcast },
+        { "pthread_cond_destroy", (uintptr_t) &pthread_svelte_cond_destroy },
+        { "pthread_cond_init", (uintptr_t) &pthread_svelte_cond_init },
+        { "pthread_cond_signal", (uintptr_t) &pthread_svelte_cond_signal },
+        { "pthread_cond_timedwait", (uintptr_t) &pthread_svelte_cond_timedwait },
+        { "pthread_cond_wait", (uintptr_t) &pthread_svelte_cond_wait },
 
         { "pthread_create", (uintptr_t) &pthread_create_soloader },
         { "pthread_detach", (uintptr_t) &pthread_detach_soloader },
@@ -780,16 +883,16 @@ so_default_dynlib default_dynlib[] = {
         { "pthread_key_delete", (uintptr_t)&pthread_key_delete },
         { "pthread_kill", (uintptr_t)&pthread_kill_soloader },
 
-        { "pthread_mutex_destroy", (uintptr_t) &pthread_mutex_destroy_soloader },
-        { "pthread_mutex_init", (uintptr_t) &pthread_mutex_init_soloader },
-        { "pthread_mutex_lock", (uintptr_t) &pthread_mutex_lock_soloader },
-        { "pthread_mutex_trylock", (uintptr_t) &pthread_mutex_trylock_soloader },
-        { "pthread_mutex_unlock", (uintptr_t) &pthread_mutex_unlock_soloader },
-        { "pthread_mutexattr_destroy", (uintptr_t) &pthread_mutexattr_destroy_soloader },
-        { "pthread_mutexattr_init", (uintptr_t) &pthread_mutexattr_init_soloader },
-        { "pthread_mutexattr_settype", (uintptr_t) &pthread_mutexattr_settype_soloader },
+        { "pthread_mutex_destroy", (uintptr_t) &pthread_svelte_mutex_destroy },
+        { "pthread_mutex_init", (uintptr_t) &pthread_svelte_mutex_init },
+        { "pthread_mutex_lock", (uintptr_t) &pthread_svelte_mutex_lock },
+        { "pthread_mutex_trylock", (uintptr_t) &pthread_svelte_mutex_trylock },
+        { "pthread_mutex_unlock", (uintptr_t) &pthread_svelte_mutex_unlock },
+        { "pthread_mutexattr_destroy", (uintptr_t) &pthread_svelte_mutexattr_destroy },
+        { "pthread_mutexattr_init", (uintptr_t) &pthread_svelte_mutexattr_init },
+        { "pthread_mutexattr_settype", (uintptr_t) &pthread_svelte_mutexattr_settype },
         { "pthread_mutexattr_setpshared", (uintptr_t) &ret0 },
-        { "pthread_once", (uintptr_t)&pthread_once_soloader },
+        { "pthread_once", (uintptr_t)&pthread_svelte_once },
 
         { "pthread_self", (uintptr_t) &pthread_self_soloader },
         { "pthread_setname_np", (uintptr_t) &pthread_setname_np_soloader },
@@ -892,8 +995,6 @@ so_default_dynlib default_dynlib[] = {
 
         // Syscalls
         { "fork", (uintptr_t)&fork },
-        { "getpagesize", (uintptr_t)&getpagesize },
-        { "getpid", (uintptr_t)&getpid },
         { "sbrk", (uintptr_t)&sbrk },
         { "syscall", (uintptr_t)&syscall },
         { "sysconf", (uintptr_t)&ret0 },
@@ -908,13 +1009,10 @@ so_default_dynlib default_dynlib[] = {
         { "difftime", (uintptr_t)&difftime },
         { "gettimeofday", (uintptr_t)&gettimeofday },
         { "gmtime", (uintptr_t)&gmtime },
-        { "gmtime64", (uintptr_t)&gmtime64 },
         { "gmtime_r", (uintptr_t)&gmtime_r },
         { "localtime", (uintptr_t)&localtime },
-        { "localtime64", (uintptr_t)&localtime64 },
         { "localtime_r", (uintptr_t)&localtime_r },
         { "mktime", (uintptr_t)&mktime },
-        { "mktime64", (uintptr_t)&mktime64 },
         { "nanosleep", (uintptr_t)&nanosleep },
         { "strftime", (uintptr_t)&strftime },
         { "time", (uintptr_t)&time },

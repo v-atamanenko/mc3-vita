@@ -25,11 +25,22 @@
 #include <falso_jni/FalsoJNI.h>
 #include <so_util/so_util.h>
 #include <fios/fios.h>
+#include <stdatomic.h>
+#include <kubridge.h>
+#include <psp2kern/kernel/sysmem/memtype.h>
 
 // Base address for the Android .so to be loaded at
 #define LOAD_ADDRESS 0x98000000
 
 extern so_module so_mod;
+
+void __kuser_memory_barrier(void) {
+    asm("dmb\n");
+}
+
+int __kuser_cmpxchg(int32_t oldval, int32_t newval, volatile int32_t *ptr) {
+    return !atomic_compare_exchange_strong(ptr, &oldval, newval);
+}
 
 void soloader_init_all() {
 	// Launch `app0:configurator.bin` on `-config` init param
@@ -74,6 +85,17 @@ void soloader_init_all() {
 
     settings_load();
     l_success("Settings loaded.");
+
+    SceKernelAllocMemBlockKernelOpt opt;
+    memset(&opt, 0, sizeof(SceKernelAllocMemBlockKernelOpt));
+    opt.size = sizeof(SceKernelAllocMemBlockKernelOpt);
+    opt.attr = 0x1;
+    opt.field_C = (SceUInt32)0x9A000000;
+    if (kuKernelAllocMemBlock("atomic", SCE_KERNEL_MEMBLOCK_TYPE_USER_RX, 0x1000, &opt) < 0)
+        fatal_error("Error could not allocate atomic block.");
+
+    hook_addr(0x9A000FA0, (uintptr_t)__kuser_memory_barrier);
+    hook_addr(0x9A000FC0, (uintptr_t)__kuser_cmpxchg);
 
     so_relocate(&so_mod);
     l_success("SO relocated.");

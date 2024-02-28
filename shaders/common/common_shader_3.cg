@@ -1,0 +1,43 @@
+// profile sce_fp_psp2
+
+#define TEXTURE_2D 0
+#define TEXTURE_3D 1
+#define TEXTURE_CUBE_MAP 2
+#define TEXTURE_RECT 3
+
+#ifndef TEXTURE_TYPE
+	#define TEXTURE_TYPE TEXTURE_2D
+#endif
+
+#if TEXTURE_TYPE == TEXTURE_3D
+	#undef TEXTURE_TYPE
+	#define TEXTURE_TYPE TEXTURE_2D
+#elif TEXTURE_TYPE == TEXTURE_RECT
+	#error texture rectangle not supported with GLES2
+#endif
+
+#if TEXTURE_TYPE == TEXTURE_CUBE_MAP
+uniform samplerCUBE glitch_texture;
+#else
+uniform sampler2D glitch_texture;
+uniform sampler2D texture_alpha;
+#endif
+
+
+
+void main(
+#if TEXTURE_TYPE == TEXTURE_CUBE_MAP
+	float3 vCoord0 : TEXCOORD0,
+#else
+	float2 vCoord0 : TEXCOORD0,
+#endif
+	float4 vColor0 : COLOR0,
+	float4 out gl_FragColor : COLOR
+) {
+#if TEXTURE_TYPE == TEXTURE_CUBE_MAP
+	gl_FragColor = texCUBE(glitch_texture, vCoord0) * vColor0;
+#else
+	gl_FragColor = float4(tex2D(glitch_texture, vCoord0).rgb,
+	                tex2D(texture_alpha, vCoord0).g) * vColor0;
+#endif
+}

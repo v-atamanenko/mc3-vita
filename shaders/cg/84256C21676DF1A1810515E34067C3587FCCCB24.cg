@@ -1,0 +1,15 @@
+// profile sce_vp_psp2
+
+#define GLITCH_OPENGLES_2
+
+void main(
+	float4 Vertex,
+	float2 Texcoord0,
+	float2 out vCoord0 : TEXCOORD0,
+	float4 out gl_Position : POSITION,
+	float out gl_PointSize : PSIZE
+) {
+	gl_PointSize = 1.0f;
+	vCoord0 = Texcoord0;
+	gl_Position = Vertex;
+}

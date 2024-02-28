@@ -1,0 +1,33 @@
+// profile sce_fp_psp2
+
+uniform sampler2D Sampler0;
+uniform float4 DiffuseColor;
+
+#define USE_ALPHA_TEXTURE
+
+#ifdef USE_ALPHA_TEXTURE
+uniform sampler2D Sampler0_alpha;
+#endif
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float4 vColor : TEXCOORD1,
+	float4 out gl_FragColor : COLOR
+) {
+#ifdef USE_ALPHA_TEXTURE
+	float4 color = float4(tex2D(Sampler0,  vCoord0).rgb,
+	            tex2D(Sampler0_alpha,  vCoord0).g);
+#else
+	float4 color = tex2D(Sampler0,  vCoord0);
+#endif
+
+#ifdef DIFFUSECOLOR
+	color *= DiffuseColor;
+#endif
+	color *= vColor;
+#ifdef DIFFUSECOLOR
+	gl_FragColor = color * 0.001 + float4(1,0,0,1);
+#endif
+	gl_FragColor = color;
+
+}

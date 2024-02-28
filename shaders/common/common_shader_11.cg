@@ -1,0 +1,60 @@
+// profile sce_fp_psp2
+
+#if defined(LIGHTMAP) || defined(CG_FOG)
+	#define DIFFUSE
+#endif
+
+uniform sampler2D DiffuseMapSampler;
+uniform samplerCUBE CubeMapSampler;
+uniform sampler2D LightMapSampler;
+uniform sampler2D NormalMapSampler;
+uniform sampler2D ReflectionMapSampler;
+
+uniform float4 fogcolor;
+
+uniform float4 lightmapFactor;
+uniform float3 sunFactorA;
+
+void main(
+	float2 vCoordDiffuse : TEXCOORD1,
+	float2 vCoordLightMap : TEXCOORD2,
+	float2 vCoordReflectionMap : TEXCOORD3,
+	float4 vDebug : TEXCOORD4,
+	float3 vReflection : TEXCOORD7,
+	float3 vReflectionAmount : TEXCOORD8,
+	float fogFactor : TEXCOORD9,
+	float4 out gl_FragColor : COLOR
+) {
+	float4 color = float4(0,0,0,0);
+
+#ifdef DIFFUSE
+	color = tex2D(DiffuseMapSampler, vCoordDiffuse);
+#endif
+
+#ifdef LIGHTMAP
+	float4 lightmap = tex2D(LightMapSampler, vCoordLightMap);
+	lightmap *= (2.0 - lightmap.a);
+	color *= lightmap * lightmapFactor;
+#endif
+
+	float4 reflectedColor = texCUBE(CubeMapSampler, vReflection);
+	reflectedColor.rgb *= vReflectionAmount;
+
+#ifdef REFLECTIONMAP
+	float4 reflectionMap = tex2D(ReflectionMapSampler, vCoordReflectionMap);
+	reflectedColor.rgb *= reflectionMap.r;
+#endif
+
+	color += reflectedColor;
+
+
+#ifdef CG_FOG
+	color.xyz = lerp(color.xyz, fogcolor.xyz, fogFactor);
+#endif
+
+#ifdef DIFFUSE
+	color.rgb += sunFactorA;
+#endif
+
+	gl_FragColor = color;
+}

@@ -1,0 +1,146 @@
+// profile sce_vp_psp2
+
+#ifdef NORMALMAP
+	#define SPECULAR
+#endif
+
+uniform float3 light0position;
+uniform float4x4 WorldViewProjectionMatrix;
+uniform float4x4 matWorld;
+uniform float4x4 matWorldIT;
+uniform float4x4 matWorldViewIT;
+uniform float4x4 matWorldViewI;
+uniform float4x4 TextureMatrix0;
+uniform float4x4 matWorldT;
+uniform float4x4 matViewI;
+uniform float4x4 matWorldI;
+uniform float4x4 WorldViewT;
+
+uniform float4 cAr;
+uniform float4 cAg;
+uniform float4 cAb;
+uniform float4 cBr;
+uniform float4 cBg;
+uniform float4 cBb;
+uniform float3 cC;
+
+uniform float2 fogstartend;
+
+uniform float3 pointLightPosition;
+uniform float3 pointLightIntensity;
+
+uniform float3 specDirection;
+uniform float3 specIntensity;
+uniform float specAmount;
+
+uniform float reflectionAmount;
+
+float3 irradiance(float3 normal3)
+{
+	float4 normal = float4(normal3, 1.0);
+	normal.z = -normal.z;
+
+	float3 x1, x2, x3;
+
+	// Linear + constant polynomial terms
+	x1.r = dot(cAr,normal);
+	x1.g = dot(cAg,normal);
+	x1.b = dot(cAb,normal);
+
+	// 4 of the quadratic polynomials
+	float4 vB = normal.xyzz * normal.yzzx;
+	x2.r = dot(cBr,vB);
+	x2.g = dot(cBg,vB);
+	x2.b = dot(cBb,vB);
+
+	// Final quadratic polynomial
+	float vC = normal.x*normal.x - normal.y*normal.y;
+	x3 = cC.rgb * vC;
+
+	return x1 + x2 + x3;
+}
+
+float3 pointLight(float3 position, float3 normal)
+{
+	float3 delta = pointLightPosition - position;
+	float distance2 = dot(delta, delta) * 0.0001;
+	float3 intensity = pointLightIntensity / distance2;
+	return max(dot(normal, normalize(delta)),0.0) * intensity;
+}
+
+void main(
+	float4 Vertex,
+	float2 TexCoord0,
+	float3 Normal,
+	float3 Tangent,
+	float3 Binormal,
+	float2 out vCoord0 : TEXCOORD0,
+	float3 out vDiffuse : TEXCOORD1,
+	float3 out vNormal : TEXCOORD2,
+	float out fogFactor : TEXCOORD9,
+	float3 out vHalf : TEXCOORD3,
+	float3 out vSpecIntensity : TEXCOORD4,
+	float2 out vRimCoord : TEXCOORD5,
+	float3 out vEyeDirection : TEXCOORD6,
+	float3 out vReflection : TEXCOORD7,
+	float out vReflectionAmount : TEXCOORD8,
+	float4 out gl_Position : POSITION,
+	float out gl_PointSize : PSIZE
+) {
+	gl_PointSize = 1.0f;
+	gl_Position = mul(Vertex, WorldViewProjectionMatrix);
+	float3 position = mul(Vertex, matWorld).xyz;
+	vCoord0 = mul(float4(TexCoord0.xy, 1.0, 0.0), TextureMatrix0).xy;
+	float3 normal = mul(float4(Normal,0.0), matWorldIT).xyz;
+	vDiffuse = irradiance(normal);
+#ifdef POINTLIGHT
+	vDiffuse += pointLight(position, normal);
+#endif
+
+#ifdef NORMALMAP
+	//float3x3 objectToTangent = float3x3(0, 0, 0, 0, 0, 0, 0, 0, 0);
+	float3x3 objectToTangent = float3x3(Tangent.x, Binormal.x, Normal.x, Tangent.y, Binormal.y, Normal.y, Tangent.z, Binormal.z, Normal.z);
+#else
+	vNormal = normal;
+#endif
+
+#if defined(SPECULAR) || defined(CUBE)
+	float4 eyePosition = mul(matViewI[3], matWorldI);
+	float3 eyeDirection = normalize(eyePosition.xyz - Vertex.xyz);
+	#if defined(CUBE)
+	    vEyeDirection = eyeDirection;
+	    vReflectionAmount = dot(vDiffuse,float3(0.3,0.6,0.1)) * reflectionAmount;
+	    #ifndef NORMALMAP
+	        vReflection = reflect(vEyeDirection, normal);
+	    #endif
+	#else
+	    vEyeDirection = mul(vEyeDirection, objectToTangent);
+	#endif
+
+#endif
+
+#ifdef SPECULAR
+
+	float3 spec = mul(float4(specDirection,0.0), matWorldT).xyz;
+	//eyeDirection = (matWorld * float4(eyeDirection,1.0)).xyz;
+	vHalf = normalize(eyeDirection + spec);
+
+#ifdef NORMALMAP
+	vHalf = mul(vHalf, objectToTangent);
+	//vHalf = normalize(vHalf);
+#endif
+
+	vSpecIntensity = specIntensity * specAmount;
+#endif
+
+#ifdef CG_FOG
+	float depth = dot(WorldViewT[2], Vertex);
+	fogFactor = clamp((depth - fogstartend[0])/(fogstartend[1] - fogstartend[0]), 0.0, 1.0);
+#endif
+
+#ifdef RIM
+	float2 rimNormal = mul(float4(Normal, 0), matWorldViewIT).xy;
+	vRimCoord.x = rimNormal.x * 0.5 + 0.5;
+	vRimCoord.y = 0.5 - rimNormal.y * 0.5;
+#endif
+}

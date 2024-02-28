@@ -1,0 +1,32 @@
+// profile sce_vp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform float4x4 TextureMatrix0;
+uniform float4x4 WorldViewProjectionMatrix;
+uniform float4 DiffuseColor;
+
+#ifdef CG_FOG
+uniform float4x4 WorldViewT;
+uniform float2 fogstartend;
+#endif //CG_FOG
+
+void main(
+	float4 Position,
+	float4 Color0,
+	float2 TexCoord0,
+	float out fogFactor : TEXCOORD9,
+	float2 out vTexCoord0 : TEXCOORD0,
+	float4 out vColor0 : COLOR0,
+	float4 out gl_Position : POSITION
+) {
+	gl_Position = mul(Position, WorldViewProjectionMatrix);
+	vTexCoord0 = mul(float4(TexCoord0, 1, 0), TextureMatrix0).xy;
+	vColor0 = Color0;
+
+#ifdef CG_FOG
+	float depth = dot(WorldViewT[2], Position);
+	fogFactor = clamp((-depth - fogstartend[0])/(fogstartend[1] - fogstartend[0]), 0.0, 1.0);
+#endif //CG_FOG
+
+}

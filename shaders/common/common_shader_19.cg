@@ -1,0 +1,59 @@
+// profile sce_fp_psp2
+
+uniform samplerCUBE CubeMapSampler;
+uniform sampler2D GeneratedWaterNormals;
+
+
+
+uniform float4 fogcolor;
+
+uniform float3 sunFactorA;
+
+uniform float3 downColor;
+uniform float3 horizonColor;
+
+void main(
+	float2 vCoord : TEXCOORD0,
+	float4 vDebug : TEXCOORD4,
+	float3 vEyeDirection : TEXCOORD6,
+	float vFogFactor : TEXCOORD9,
+	float4 vPosition : TEXCOORD2,
+	float4 vEyePosition : TEXCOORD5,
+	float4 vBaseColor : TEXCOORD3,
+	float4 out gl_FragColor : COLOR
+) {
+	float3 eyeDirection = vEyeDirection;//normalize(vEyePosition.xyz - vPosition.xyz);
+
+	float4 color = vBaseColor;
+
+	//normal.z=-normal.z;
+	#ifdef LOW_WATER
+	float3 normal = tex2D(GeneratedWaterNormals,  vCoord*1.6).xzy * float3(2.0,2.0,-2.0) - float3(1.0,1.0,-1.0);
+
+	    float3 reflection = eyeDirection - normal;
+
+	    float reflectionAmount = normal.x + normal.y + normal.z;
+	    float d = max(0.7,normal.x + normal.y + normal.z);
+	    float4 reflectedColor = float4(float3(d*0.8,d*0.9,d),1.0);
+
+	    color *= reflectedColor;
+	#else
+	float3 normal = tex2D(GeneratedWaterNormals,  vCoord).xzy * float3(2.0,2.0,-2.0) - float3(1.0,1.0,-1.0);
+	    float3 reflection = reflect(eyeDirection, normal);
+
+	    float reflectionAmount = min(1.0 - dot(eyeDirection, normal), 0.90);
+	    reflectionAmount *= reflectionAmount;
+	    reflectionAmount *= reflectionAmount;
+	    float4 reflectedColor = texCUBE(CubeMapSampler, reflection);
+	    reflectedColor *= reflectionAmount;
+	color += reflectedColor;
+	#endif
+
+#ifdef CG_FOG
+	color.xyz = lerp(color.xyz, fogcolor.xyz, vFogFactor);
+#endif
+
+	color.rgb += sunFactorA;
+
+	gl_FragColor = color;
+}

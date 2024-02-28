@@ -1,0 +1,44 @@
+// profile sce_vp_psp2
+
+#define TEXTURE_2D 0
+#define TEXTURE_3D 1
+#define TEXTURE_CUBE_MAP 2
+#define TEXTURE_RECT 3
+
+#ifndef TEXTURE_TYPE
+	#define TEXTURE_TYPE TEXTURE_2D
+#endif
+
+uniform float4x4 WorldViewProjectionMatrix;
+
+#ifdef TEXTURE_MATRIX
+	uniform float4x4 TextureMatrix;
+#endif
+
+void main(
+	float4 Vertex,
+	float4 Color0,
+#if TEXTURE_TYPE == TEXTURE_3D || TEXTURE_TYPE == TEXTURE_CUBE_MAP
+	float3 TexCoord0,
+	float3 out vCoord0 : TEXCOORD0,
+#else
+	float2 TexCoord0,
+	float2 out vCoord0 : TEXCOORD0,
+#endif
+	float4 out vColor0 : COLOR0,
+	float4 out gl_Position : POSITION,
+	float out gl_PointSize : PSIZE
+) {
+	gl_PointSize = 1.0f;
+#ifdef TEXTURE_MATRIX
+	#if TEXTURE_TYPE == TEXTURE_3D || TEXTURE_TYPE == TEXTURE_CUBE_MAP
+		vCoord0 = mul(float4(TexCoord0, 1.0), TextureMatrix).xyz;
+	#else
+		vCoord0 = mul(float4(TexCoord0, 0.0, 1.0), TextureMatrix).xy;
+	#endif
+#else
+	vCoord0 = TexCoord0;
+#endif
+	vColor0 = Color0;
+	gl_Position = mul(Vertex, WorldViewProjectionMatrix);
+}

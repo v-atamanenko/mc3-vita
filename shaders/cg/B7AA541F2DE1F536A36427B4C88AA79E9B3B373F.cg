@@ -1,0 +1,29 @@
+// profile sce_fp_psp2
+
+#define GLITCH_OPENGLES_2
+
+uniform sampler2D texture0;
+uniform sampler2D texture1;
+uniform float threshold;
+uniform float bloomFactor;
+
+uniform float texelSize;
+uniform float resizedTexelSize;
+
+float4 screen(float4 a, float4 b)
+{
+	return b + (a * (1.0-b));
+}
+
+void main(
+	float2 vCoord0 : TEXCOORD0,
+	float2 vCoord1 : TEXCOORD1,
+	float4 out gl_FragColor : COLOR
+) {
+	float4 color = tex2D(texture0, vCoord0);
+	float4 bloom = tex2D(texture1, vCoord1);
+
+	color = screen(color, bloom*1.1);
+
+	gl_FragColor = color;
+}
