@@ -1,5 +1,5 @@
 <h1 align="center">
-<img align="center" src="screenshots/banner.png" width="50%"><br>
+<img align="center" src="extras/screenshots/banner.png" width="50%"><br>
 Modern Combat 3 · PSVita Port
 </h1>
 <p align="center">
