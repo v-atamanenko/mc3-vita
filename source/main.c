@@ -337,9 +337,18 @@ void* game_thread() {
 
     int (* GL2JNILib_step)() = (void *)so_symbol(&so_mod, "Java_com_gameloft_glf_GL2JNILib_step");
 
+    const uint32_t delta = (1000000 / (24+1));
+    uint32_t last_render_time = sceKernelGetProcessTimeLow();
+
     while (1) {
         GL2JNILib_step();
         gl_swap();
+
+        while (sceKernelGetProcessTimeLow() - last_render_time < delta) {
+            sched_yield();
+        }
+
+        last_render_time = sceKernelGetProcessTimeLow();
     }
 
     sceKernelExitDeleteThread(0);

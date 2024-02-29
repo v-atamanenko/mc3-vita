@@ -252,7 +252,7 @@ int pthread_svelte_mutex_lock(pthread_svelte_mutex_t *mutex) {
     while (internal->data->lock_count != 0) {
         _unlock();
         sceKernelDelayThread(backoff);
-        backoff = backoff + 8;
+        backoff = backoff + 10;
         _lock();
     }
 

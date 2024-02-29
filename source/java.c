@@ -463,7 +463,7 @@ jint getMinBufferSize(jmethodID id, va_list args) {
     jint channelConfig = va_arg(args, jint);
     jint audioFormat = va_arg(args, jint);
     fjni_logv_info("getMinBufferSize(%d, %s, %s)", sampleRateInHz, _channelConfigToStr(channelConfig), _audioFormatToStr(audioFormat));
-    return (jint)4096*1024;
+    return (jint)4096;
 }
 
 void play(jmethodID id, va_list args) {

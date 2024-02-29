@@ -244,7 +244,7 @@ int pthread_svelte_cond_wait(pthread_svelte_cond_t * cond, pthread_svelte_mutex_
         pthread_svelte_mutex_unlock(mutex);
         _unlock();
         sceKernelDelayThread(backoff);
-        backoff = backoff + 8;
+        backoff = backoff + 10;
         _lock();
         pthread_svelte_mutex_lock(mutex);
     }
@@ -362,7 +362,7 @@ int pthread_svelte_cond_timedwait(pthread_svelte_cond_t * cond, pthread_svelte_m
         _unlock();
         sceKernelDelayThread(backoff);
         slept_for += backoff;
-        backoff = backoff + 8;
+        backoff = backoff + 10;
         _lock();
         pthread_svelte_mutex_lock(mutex);
     }
@@ -477,7 +477,7 @@ int pthread_svelte_cond_clockwait(pthread_svelte_cond_t * cond, pthread_svelte_m
         _unlock();
         sceKernelDelayThread(backoff);
         slept_for += backoff;
-        backoff = backoff + 8;
+        backoff = backoff + 10;
         _lock();
         pthread_svelte_mutex_lock(mutex);
     }
