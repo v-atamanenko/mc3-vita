@@ -1,0 +1,22 @@
+// profile sce_vp_psp2
+
+#define GLITCH_OPENGLES_2
+#define WATER
+
+uniform float4x4 WorldViewProjectionMatrix;
+uniform float2 uvOffset;
+
+void main(
+	float4 Vertex,
+	float2 TexCoord0,
+	float3 Normal,
+	float4 color,
+	float2 out vCoord0 : TEXCOORD0,
+	float4 out vColor : TEXCOORD1,
+	float4 out gl_Position : POSITION
+) {
+	float4 pos = mul(Vertex, WorldViewProjectionMatrix);
+	vCoord0 = TexCoord0.xy + uvOffset;
+	vColor = color;
+	gl_Position = pos;
+}
