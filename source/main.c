@@ -1,6 +1,7 @@
 #include "utils/init.h"
 #include "utils/glutil.h"
 #include "utils/logger.h"
+#include "utils/player.h"
 
 #include <psp2/kernel/threadmgr.h>
 
@@ -11,11 +12,16 @@
 #include <pthread.h>
 #include <psp2/touch.h>
 #include <math.h>
+#include <stdbool.h>
 #include <psp2/ctrl.h>
 #include <string.h>
 #include <pthread-svelte/include/pthread_svelte.h>
 #include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/clib.h>
+#include <psp2/sysmodule.h>
+
+bool video_player_active = false;
+bool video_player_wantexit = false;
 
 int _newlib_heap_size_user = 280 * 1024 * 1024;
 
@@ -29,6 +35,8 @@ void * controls_thread();
 
 int main() {
     soloader_init_all();
+
+    sceSysmoduleLoadModule(SCE_SYSMODULE_AVPLAYER);
 
     int (* JNI_OnLoad)(void *jvm) = (void *)so_symbol(&so_mod, "JNI_OnLoad");
     JNI_OnLoad(&jvm);
@@ -208,6 +216,12 @@ void pollPad() {
         pressed_buttons = current_buttons & ~old_buttons;
         released_buttons = ~current_buttons & old_buttons;
 
+        if (video_player_active) {
+            if (pressed_buttons & SCE_CTRL_CROSS) {
+                video_player_wantexit = true;
+            }
+        }
+
         for (int i = 0; i < sizeof(mapping) / sizeof(ButtonMapping); i++) {
             if (GL2JNILib_isGamePlay() && mapping[i].sce_button == SCE_CTRL_CROSS) {
                 // Disable cross in gameplay to avoid a nasty bug
@@ -338,14 +352,28 @@ void* game_thread() {
     uint32_t last_render_time = sceKernelGetProcessTimeLow();
 
     while (1) {
-        GL2JNILib_step();
-        gl_swap();
+        if (video_player_active) {
+            l_info("about to draw 2d frame");
+            glViewport(0, 0, 960, 544);
+            glScissor(0, 0, 960, 544);
+            glClear(GL_COLOR_BUFFER_BIT);
+            draw_2d_frame();
+            gl_swap();
 
-        while (sceKernelGetProcessTimeLow() - last_render_time < delta) {
-            sched_yield();
+            if (video_player_wantexit == true) {
+                video_close();
+                video_player_wantexit = false;
+            }
+        } else {
+            GL2JNILib_step();
+            gl_swap();
+
+            while (sceKernelGetProcessTimeLow() - last_render_time < delta) {
+                sched_yield();
+            }
+
+            last_render_time = sceKernelGetProcessTimeLow();
         }
-
-        last_render_time = sceKernelGetProcessTimeLow();
     }
 
     sceKernelExitDeleteThread(0);

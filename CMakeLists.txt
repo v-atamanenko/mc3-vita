@@ -86,6 +86,7 @@ add_executable(${CMAKE_PROJECT_NAME}
                source/utils/glutil.c
                source/utils/init.c
                source/utils/logger.c
+               source/utils/player.c
                source/utils/settings.c
                source/utils/trophies.c
                source/utils/utils.c
@@ -119,12 +120,18 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
                       SceShaccCgExt
                       taihen_stub
                       SceShaccCg_stub
+                      zip
+                      bz2
+                      lzma
+                      zstd
+                      crypto
                       z
                       m
                       ScePgf_stub
                       mathneon
                       kubridge_stub
                       ${CMAKE_BINARY_DIR}/lib/libc_bridge/stubs/libSceLibcBridge_stub.a
+                      SceAvPlayer_stub
                       SceRazorHud_stub
                       SceRazorCapture_stub
                       SceNpTrophy_stub

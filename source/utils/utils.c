@@ -24,6 +24,8 @@
 
 #ifdef USE_SCELIBC_IO
 #include <libc_bridge/libc_bridge.h>
+#include <zip.h>
+
 #endif
 
 uint64_t current_timestamp_ms() {

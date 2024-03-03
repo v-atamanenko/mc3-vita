@@ -145,7 +145,10 @@ void so_patch(void) {
     //FUN_006ab354_hook = hook_addr((uintptr_t)so_mod.text_base + 0x006ab354, (uintptr_t)&FUN_006ab354);
     //FUN_006ab588_hook = hook_addr((uintptr_t)so_mod.text_base + 0x006ab588, (uintptr_t)&FUN_006ab588);
     //FUN_005f74fc_hook = hook_addr((uintptr_t)so_mod.text_base + 0x005f74fc, (uintptr_t)&FUN_005f74fc);
-    FUN_00083594_hook = hook_addr((uintptr_t)so_mod.text_base + 0x00083594, (uintptr_t)&FUN_00083594);
+
+    // Uncomment next line to get hash-filename pairs for OBBs
+    //FUN_00083594_hook = hook_addr((uintptr_t)so_mod.text_base + 0x00083594, (uintptr_t)&FUN_00083594);
+
     audioThread_hook = hook_addr((uintptr_t)so_mod.text_base + 0x003b4ae0, (uintptr_t)&audioThread);
 
     //hook_addr((uintptr_t)so_mod.text_base + 0x00702230, (uintptr_t)&logWrapper);

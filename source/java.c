@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include "utils/logger.h"
 #include "utils/trophies.h"
+#include "utils/player.h"
 
 /*
  * JNI Methods
@@ -333,9 +334,18 @@ jobject setClassName(jmethodID id, va_list args) {
     return (jobject)0x42424242;
 }
 
+char video_name[256];
+char video_lang[256];
+
 jobject putExtra(jmethodID id, va_list args) {
     jstring arg1 = va_arg(args, jstring);
     jstring arg2 = va_arg(args, jstring);
+    if (strcmp(arg1, "video_name") == 0) {
+        snprintf(video_name, sizeof(video_name), "%s", arg2);
+    } else if (strcmp(arg2, "language") == 0) {
+        snprintf(video_lang, sizeof(video_lang), "%s", arg2);
+    }
+
     fjni_logv_info("putExtra(\"%s\", \"%s\")", arg1, arg2);
     return (jobject)0x42424242;
 }
@@ -484,6 +494,7 @@ void release(jmethodID id, va_list args) {
 }
 
 int audio_port = -1;
+extern bool video_player_active;
 
 jint audio_write(jmethodID id, va_list args) {
     void* _buf = va_arg(args, jbyteArray);
@@ -503,7 +514,9 @@ jint audio_write(jmethodID id, va_list args) {
         fjni_logv_info("got audio_port %i (calling thread %p)\n", audio_port, sceKernelGetThreadId());
     }
 
-    sceAudioOutOutput(audio_port, buf);
+    if (!video_player_active) {
+        sceAudioOutOutput(audio_port, buf);
+    }
 
     return len;
 }
@@ -543,24 +556,16 @@ jobject addCategory(jmethodID id, va_list args) {
     return (jobject)0x42424242;
 }
 
-extern so_module so_mod;
-void * playmovie_thread(void * a) {
-    sceKernelDelayThread(500000);
-    l_info("Calling Setfinished");
-    void (* Java_video_MyVideoView_SetFinished)() = (void *)so_symbol(&so_mod, "Java_video_MyVideoView_SetFinished");
-    Java_video_MyVideoView_SetFinished();
-}
+extern bool video_player_active;
 
 void startActivity(jmethodID id, va_list args) {
     jobject arg1 = va_arg(args, jobject);
     fjni_logv_info("startActivity(%p)", arg1);
-    l_info("playMovie, sleeping half a second and calling Setfinished");
 
-    pthread_t t;
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_create(&t, &attr, playmovie_thread, NULL);
-    pthread_detach(t);
+    video_open(video_name, video_lang);
+    video_player_active = true;
+
+    l_info("video_open called with %s, %s", video_name, video_lang);
 }
 
 void startActivityForResult(jmethodID id, va_list args) {
