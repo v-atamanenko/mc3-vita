@@ -115,7 +115,6 @@ Controls
 |      ![dpadu]       | Sprint                                                 |
 |      ![dpadd]       | Crouch                                                 |
 |      ![dpadh]       | Change weapon                                          |
-|      ![cross]       | Interact / Detonate (when prompted)                    |
 |      ![circl]       | Grenades                                               |
 |      ![squar]       | Reload                                                 |
 |      ![start]       | Open Menu                                              |
@@ -125,15 +124,8 @@ Known Issues
 
 1. Multiplayer doesn't work, same as on Android, because the servers have been
 shut down.
-2. In the middle of Mission 3, after you detonate C4 on a turret, there is a short
-sequence where you can't reload your weapon because of a bug. To circumvent the
-issue, switch to your secondary weapon (normally, a pistol, but you can pick
-up something else to replace it) **BEFORE** you run out of ammo in your magazine.
-If you run out of ammo, it will bug out completely and prevent you from switching
-weapons. After you did that, keep playing for a minute or two until the next
-checkpoint is reached (which will be indicated by “Saving…” indicator
-on the screen), go to pause menu and choose "Restart checkpoint". Your primary
-weapon will work normally again.
+2. ![cross] button works only in main menu. For in-game interaction prompts and
+pause menu you will have to use the touchscreen.
 
 Build Instructions (For Developers)
 ----------------
