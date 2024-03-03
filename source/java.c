@@ -345,8 +345,9 @@ jobject getSDFolder(jmethodID id, va_list args) {
     return (jstring)strdup(DATA_PATH);
 }
 
-void androidOsBundleInit(jmethodID id, va_list args) {
+jobject androidOsBundleInit(jmethodID id, va_list args) {
     fjni_log_info("android/os/Bundle/<init>(void)");
+    return (jobject)0x42424242;
 }
 
 void putString(jmethodID id, va_list args) {
@@ -708,6 +709,31 @@ jobject getIMEI(jmethodID id, va_list args) {
     return (jobject)strdup("351066496380730");
 }
 
+jobject getHDIDFVd(jmethodID id, va_list args) {
+    fjni_log_info("getHDIDFVd()");
+    return (jobject)strdup("351066496380730");
+}
+
+jobject getCountryCode(jmethodID id, va_list args) {
+    fjni_log_info("getCountryCode()");
+    return (jobject)strdup("us");
+}
+
+jobject getDeviceName(jmethodID id, va_list args) {
+    fjni_log_info("getDeviceName()");
+    return (jobject)strdup("Xperia Play");
+}
+
+jobject getDeviceFW(jmethodID id, va_list args) {
+    fjni_log_info("getDeviceFW()");
+    return (jobject)strdup("4.1.2");
+}
+
+jint IsWifiEnabled(jmethodID id, va_list args) {
+    fjni_log_info("IsWifiEnabled()");
+    return (jint)1;
+}
+
 NameToMethodID nameToMethodId[] = {
     { 102, "getPreferenceString", METHOD_TYPE_OBJECT },
     { 103, "getPackage", METHOD_TYPE_OBJECT },
@@ -772,7 +798,7 @@ NameToMethodID nameToMethodId[] = {
     { 162, "android/content/Intent/<init>", METHOD_TYPE_OBJECT },
     { 163, "setClassName", METHOD_TYPE_OBJECT },
     { 164, "putExtra", METHOD_TYPE_OBJECT },
-    { 165, "android/os/Bundle/<init>", METHOD_TYPE_VOID },
+    { 165, "android/os/Bundle/<init>", METHOD_TYPE_OBJECT },
     { 166, "putString", METHOD_TYPE_VOID },
     { 167, "getByteArray", METHOD_TYPE_UNKNOWN },
     { 168, "putByteArray", METHOD_TYPE_VOID },
@@ -829,6 +855,11 @@ NameToMethodID nameToMethodId[] = {
     { 218, "GetJanusToken", METHOD_TYPE_OBJECT },
     { 219, "getString", METHOD_TYPE_OBJECT },
     { 220, "getIMEI", METHOD_TYPE_OBJECT },
+    { 221, "getHDIDFVd", METHOD_TYPE_OBJECT },
+    { 222, "getCountryCode", METHOD_TYPE_OBJECT },
+    { 223, "getDeviceName", METHOD_TYPE_OBJECT },
+    { 224, "getDeviceFW", METHOD_TYPE_OBJECT },
+    { 225, "IsWifiEnabled", METHOD_TYPE_INT },
 };
 MethodsBoolean methodsBoolean[] = {
     { 111, setCurrentContext },
@@ -888,6 +919,7 @@ MethodsInt methodsInt[] = {
     { 204, LaunchGamebyNotification },
     { 215, SetOfflineDeviceCredential },
     { 216, DeletePush },
+    { 225, IsWifiEnabled },
 };
 
 MethodsLong methodsLong[] = {
@@ -909,6 +941,7 @@ MethodsObject methodsObject[] = {
     { 160, getData },
     { 163, setClassName },
     { 164, putExtra },
+    { 165, androidOsBundleInit },
     { 162, androidContentIntentInit },
     { 175, getSDFolder },
     { 177, AudioTrack_init },
@@ -925,6 +958,10 @@ MethodsObject methodsObject[] = {
     { 218, GetJanusToken },
     { 219, getString },
     { 220, getIMEI },
+    { 221, getHDIDFVd },
+    { 222, getCountryCode },
+    { 223, getDeviceName },
+    { 224, getDeviceFW },
 };
 
 MethodsShort methodsShort[] = {
@@ -949,7 +986,6 @@ MethodsVoid methodsVoid[] = {
     { 156, showCantGoBackPopup },
     { 157, showParentButton },
     { 158, hideParentButton },
-    { 165, androidOsBundleInit },
     { 166, putString },
     { 168, putByteArray },
     { 170, putInt },
