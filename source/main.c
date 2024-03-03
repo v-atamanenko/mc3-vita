@@ -85,6 +85,9 @@ void (* GL2JNILib_touchEvent)(JNIEnv *env, jclass clazz, jint p1, jint p2, jint 
 void (* GL2JNILib_keyboardEvent)(JNIEnv *env, jclass clazz, jint key, jint isDown);
 void (* GL2JNILib_setTouchPadDTLeft)(JNIEnv *env, jclass clazz, jfloat x, jfloat y, jint pointer_id);
 void (* GL2JNILib_setTouchPadDT)(JNIEnv *env, jclass clazz, jfloat x, jfloat y, jint pointer_id);
+int (* GL2JNILib_isGamePlay)();
+
+
 
 void controls_init() {
     // Enable analog sticks and touchscreen
@@ -95,6 +98,7 @@ void controls_init() {
     GL2JNILib_keyboardEvent = (void*)so_symbol(&so_mod,"Java_com_gameloft_glf_GL2JNILib_keyboardEvent");
     GL2JNILib_setTouchPadDTLeft = (void*)so_symbol(&so_mod,"Java_com_gameloft_glf_GL2JNILib_nativeSetTouchPadDTLeft");
     GL2JNILib_setTouchPadDT = (void*)so_symbol(&so_mod,"Java_com_gameloft_glf_GL2JNILib_nativeSetTouchPadDT");
+    GL2JNILib_isGamePlay = (void*)so_symbol(&so_mod,"Java_com_gameloft_android_ANMP_GloftM3HM_GloftM3HM_isGamePlay");
 }
 
 /*
@@ -142,20 +146,7 @@ void pollTouch() {
         }
     }
 
-    memcpy(&touch_old, &touch, sizeof(touch));
-
-    /*SceCtrlData pad;
-    sceCtrlPeekBufferPositive(0, &pad, 1);
-
-    if ((pad.buttons & SCE_CTRL_START) &&
-        (pad.buttons & SCE_CTRL_SELECT) &&
-        (pad.buttons & SCE_CTRL_LEFT)) {
-        SceDateTime date;
-        sceRtcGetCurrentClockLocalTime(&date);
-        char fname[256];
-        sprintf(fname, "ux0:data/cap_MOCO30000-%02d_%02d_%04d-%02d_%02d_%02d.sgx", date.day, date.month, date.year, date.hour, date.minute, date.second);
-        sceRazorGpuCaptureSetTriggerNextFrame(fname);
-    }*/
+    sceClibMemcpy(&touch_old, &touch, sizeof(touch));
 }
 
 
@@ -174,6 +165,7 @@ enum {
     AKEYCODE_BUTTON_R1 = 103,
     AKEYCODE_BUTTON_START = 108,
     AKEYCODE_BUTTON_SELECT = 109,
+    AKEYCODE_MOVE_END = 123
 };
 
 typedef struct {
@@ -192,7 +184,7 @@ static ButtonMapping mapping[] = {
         { SCE_CTRL_LEFT,      AKEYCODE_DPAD_LEFT },
         { SCE_CTRL_RIGHT,     AKEYCODE_DPAD_RIGHT },
         { SCE_CTRL_CROSS,     AKEYCODE_DPAD_CENTER },
-        { SCE_CTRL_CIRCLE,    AKEYCODE_BACK },
+        { SCE_CTRL_CIRCLE,    AKEYCODE_MOVE_END },
         { SCE_CTRL_SQUARE,    AKEYCODE_BUTTON_X },
         { SCE_CTRL_TRIANGLE,  AKEYCODE_BUTTON_Y },
         { SCE_CTRL_L1,        AKEYCODE_BUTTON_L1 },
@@ -217,6 +209,11 @@ void pollPad() {
         released_buttons = ~current_buttons & old_buttons;
 
         for (int i = 0; i < sizeof(mapping) / sizeof(ButtonMapping); i++) {
+            if (GL2JNILib_isGamePlay() && mapping[i].sce_button == SCE_CTRL_CROSS) {
+                // Disable cross in gameplay to avoid a nasty bug
+                continue;
+            }
+
             if (pressed_buttons & mapping[i].sce_button) {
                 GL2JNILib_keyboardEvent(&jni, (void *) 0x42424242, mapping[i].android_button, 1);
             }
