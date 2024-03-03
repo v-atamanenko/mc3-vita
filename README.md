@@ -98,6 +98,12 @@ precisely:
   `main.1120.com.gameloft.android.ANMP.GloftM3HM.obb`) to `ux0:data/mc3/` on
   your Vita. Example of correct resulting path: `ux0:data/mc3/main.1120.com.gameloft.android.ANMP.GloftM3HM.obb`
 
+- Unpack the video files from the game data. To do that, open your
+  `patch.11428.com.gameloft.android.ANMP.GloftM3HM.obb` with any zip explorer
+  (like [7-Zip](https://www.7-zip.org/)) and extract all files to
+  `/ux0:/data/mc3/data/briefing` on your Vita. Example of correct resulting
+  path: `ux0:data/mc3/data/briefing/Briefing_M01.mp4`
+
 - Install `ModernCombat3.vpk` (from [Releases][latest-release]).
 
 - (Optional) Install [CapUnlocker](https://github.com/GrapheneCt/CapUnlocker).

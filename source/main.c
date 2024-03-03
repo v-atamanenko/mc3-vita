@@ -288,6 +288,8 @@ void * controls_thread() {
     }
 }
 
+bool is_gameplay = false;
+
 void* game_thread() {
     controls_init();
     void (* Java_com_gameloft_glf_GL2JNILib_init)(JNIEnv * env, jclass clazz) = (void *)so_symbol(&so_mod, "Java_com_gameloft_glf_GL2JNILib_init");
@@ -373,6 +375,7 @@ void* game_thread() {
             }
 
             last_render_time = sceKernelGetProcessTimeLow();
+            is_gameplay = (GL2JNILib_isGamePlay() > 0);
         }
     }
 
