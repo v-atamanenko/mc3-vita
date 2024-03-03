@@ -126,6 +126,10 @@ Known Issues
 shut down.
 2. ![cross] button works only in main menu. For in-game interaction prompts and
 pause menu you will have to use the touchscreen.
+3. The highlight effect on interactable objects is constant instead of flashing
+like in the original game due to some GXM limitations.
+4. In Mission 7, crosshair is not showing when the sniper rifle is zoomed in.
+You will have to no-scope it :^)
 
 Build Instructions (For Developers)
 ----------------
