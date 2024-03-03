@@ -2,9 +2,11 @@
 
 #define GLITCH_OPENGLES_2
 
+uniform float4 blend_color;
+
 void main(
 	float4 vColor0 : COLOR0,
 	float4 out gl_FragColor : COLOR
 ) {
-	gl_FragColor = vColor0;
+	gl_FragColor = vColor0 * float4(0.86,0.93,0.32,0.37);
 }

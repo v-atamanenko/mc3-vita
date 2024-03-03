@@ -226,22 +226,11 @@ void glCompressedTexImage2D_hook(GLenum target, GLint level, GLenum internalform
 }
 
 void glBlendFuncWrap(GLenum sfactor, GLenum dfactor) {
-    if (sfactor == 0x8001) sfactor = GL_SRC_COLOR;
-    if (dfactor == 0x8001) sfactor = GL_SRC_COLOR;
+    if (sfactor == 0x8001) {
+        sfactor = GL_SRC_ALPHA;
+        dfactor = GL_ONE_MINUS_SRC_ALPHA;
+    }
     glBlendFunc(sfactor, dfactor);
-}
-
-void * malloc_wrap(size_t sz) {
-    void * ret = malloc(sz);
-    memset(ret, 0, sz);
-    return ret;
-}
-
-void glBlendColor(GLclampf red,
-    GLclampf green,
-    GLclampf blue,
-    GLclampf alpha) {
-    sceClibPrintf("glBlendColor %f, %f, %f, %f\n", red, green, blue, alpha);
 }
 
 so_default_dynlib default_dynlib[] = {
@@ -629,7 +618,7 @@ so_default_dynlib default_dynlib[] = {
         { "glBindRenderbuffer", (uintptr_t)&glBindRenderbuffer },
         { "glBindRenderbufferOES", (uintptr_t)&glBindRenderbuffer },
         { "glBindTexture", (uintptr_t)&glBindTexture },
-        { "glBlendColor", (uintptr_t)&glBlendColor },
+        { "glBlendColor", (uintptr_t)&ret0 },
         { "glBlendEquation", (uintptr_t)&glBlendEquation },
         { "glBlendEquationOES", (uintptr_t)&glBlendEquation },
         { "glBlendEquationSeparate", (uintptr_t)&glBlendEquationSeparate },
