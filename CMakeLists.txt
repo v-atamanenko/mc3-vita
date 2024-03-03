@@ -11,7 +11,7 @@ project(so_loader C CXX)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
 # Vita application configuration
-set(VITA_APP_NAME "Modern Combat 3")
+set(VITA_APP_NAME "MC3: Fallen Nation")
 set(VITA_TITLEID "MOCO30000")
 set(VITA_VPKNAME "ModernCombat3")
 set(VITA_VERSION "01.00")
@@ -158,6 +158,7 @@ vita_create_vpk(${VITA_VPKNAME}.vpk ${VITA_TITLEID} eboot.bin
                 ${CMAKE_SOURCE_DIR}/extras/livearea/bg0.png sce_sys/livearea/contents/bg0.png
                 ${CMAKE_SOURCE_DIR}/extras/livearea/template.xml sce_sys/livearea/contents/template.xml
                 ${CMAKE_SOURCE_DIR}/extras/trophies/TROPHY.TRP sce_sys/trophy/${VITA_TITLEID}_00/TROPHY.TRP
+                ${CMAKE_SOURCE_DIR}/shaders/gxp gxp
                 )
 
 add_custom_target(send

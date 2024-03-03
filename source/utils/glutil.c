@@ -214,7 +214,7 @@ void load_shader(GLuint shader, const char * string, size_t length) {
 #ifdef USE_CG_SHADERS
     snprintf(path, sizeof(path), DATA_PATH"cg/%s.cg", sha_name);
 #else
-    snprintf(path, sizeof(path), DATA_PATH"gxp/%s.gxp", sha_name);
+    snprintf(path, sizeof(path), "app0:gxp/%s.gxp", sha_name);
 #endif
 
     if (file_exists(path)) {
