@@ -93,9 +93,6 @@ void glShaderSource_soloader(GLuint shader, GLsizei count,
     free(str);
 }
 
-extern GLuint target_shader[4];
-extern int targetShaderCount;
-
 void glCompileShader_soloader(GLuint shader) {
 #ifdef DEBUG_OPENGL
     sceClibPrintf("[gl_dbg] glCompileShader<%p>(shader: %i)\n", __builtin_return_address(0), shader);
@@ -211,11 +208,6 @@ void load_shader(GLuint shader, const char * string, size_t length) {
         strncpy(known_shaders[known_shaders_count - 1].real_name, sha_name, 40);
         known_shaders[known_shaders_count - 1].real_name[40] = '\0';
         l_warn("saved faked shader sha1 \"%s\" under id %i", sha_name, known_shaders_count - 1);
-    }
-
-    if (strcmp(sha_name, "D9F2D657B43841E7C81D90303A5A1BB24E9222F7") == 0) {
-        target_shader[targetShaderCount] = shader;
-        targetShaderCount++;
     }
 
     char path[256];

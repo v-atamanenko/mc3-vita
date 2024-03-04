@@ -215,95 +215,6 @@ void glGetActiveUniform_wrap(GLuint prog, GLuint index, GLsizei bufSize, GLsizei
     }
 }
 
-void glTexImage2D_hook(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *data) {
-    if (level == 0)
-        glTexImage2D(target, level, internalFormat, width, height, border, format, type, data);
-}
-
-void glCompressedTexImage2D_hook(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data) {
-    if (level == 0)
-        glCompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, data);
-}
-
-void glBlendFuncWrap(GLenum sfactor, GLenum dfactor) {
-    if (sfactor == 0x8001) {
-        sfactor = GL_SRC_ALPHA;
-        dfactor = GL_ONE_MINUS_SRC_ALPHA;
-    }
-    glBlendFunc(sfactor, dfactor);
-}
-
-
-
-float blend_color[4] = {0};
-uint32_t curGlProg;
-uint32_t targetGlProg[16] = {0};
-int targetGlProgCount = 0;
-GLuint target_shader[16] = {0};
-int targetShaderCount = 0;
-
-extern bool is_gameplay;
-
-void glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) {
-    if (red == 0 && green == 0 && blue == 0 && alpha == 0) {
-        return;
-    }
-    if (red == 1 && green == 1 && blue == 1 && alpha == 1) {
-        return;
-    }
-    blend_color[0] = red;
-    blend_color[1] = green;
-    blend_color[2] = blue;
-    blend_color[3] = red;
-}
-
-void glDrawArraysWrap(GLenum mode, GLint first, GLsizei count) {
-    if (is_gameplay) {
-        for (int i = 0; i < targetGlProgCount; ++i) {
-            if (curGlProg == targetGlProg[i]) {
-                glDisableVertexAttribArray(1);
-                glVertexAttrib4f(1, blend_color[0], blend_color[1], blend_color[2], blend_color[3]);
-                glDrawArrays(mode, first, count);
-                glEnableVertexAttribArray(1);
-                return;
-            }
-        }
-    }
-
-    glDrawArrays(mode, first, count);
-}
-
-void glDrawElementsWrap(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices) {
-    if (is_gameplay) {
-        for (int i = 0; i < targetGlProgCount; ++i) {
-            if (curGlProg == targetGlProg[i]) {
-                glDisableVertexAttribArray(1);
-                glVertexAttrib4f(1, blend_color[0], blend_color[1], blend_color[2], blend_color[3]);
-                glDrawElements(mode, count, type, indices);
-                glEnableVertexAttribArray(1);
-                return;
-            }
-        }
-    }
-
-    glDrawElements(mode, count, type, indices);
-}
-
-void glUseProgramWrap(uint32_t program) {
-    glUseProgram(program);
-    curGlProg = program;
-}
-
-void glAttachShaderWrap(uint32_t prog, uint32_t shad) {
-    for (int i = 0; i < targetShaderCount; ++i) {
-        if (shad == target_shader[i]) {
-            targetGlProg[targetGlProgCount] = prog;
-            targetGlProgCount++;
-            break;
-        }
-    }
-    glAttachShader(prog,shad);
-}
 
 so_default_dynlib default_dynlib[] = {
         { "sinhf", (uintptr_t)&sinhf },
@@ -682,7 +593,7 @@ so_default_dynlib default_dynlib[] = {
         { "glActiveTexture", (uintptr_t)&glActiveTexture },
         { "glAlphaFunc", (uintptr_t)&glAlphaFunc },
         { "glAlphaFuncx", (uintptr_t)&glAlphaFuncx },
-        { "glAttachShader", (uintptr_t)&glAttachShaderWrap },
+        { "glAttachShader", (uintptr_t)&glAttachShader },
         { "glBindAttribLocation", (uintptr_t)&glBindAttribLocation },
         { "glBindBuffer", (uintptr_t)&glBindBuffer },
         { "glBindFramebuffer", (uintptr_t)&glBindFramebuffer },
@@ -690,12 +601,12 @@ so_default_dynlib default_dynlib[] = {
         { "glBindRenderbuffer", (uintptr_t)&glBindRenderbuffer },
         { "glBindRenderbufferOES", (uintptr_t)&glBindRenderbuffer },
         { "glBindTexture", (uintptr_t)&glBindTexture },
-        { "glBlendColor", (uintptr_t)&glBlendColor },
+        { "glBlendColor", (uintptr_t)&ret0 },
         { "glBlendEquation", (uintptr_t)&glBlendEquation },
         { "glBlendEquationOES", (uintptr_t)&glBlendEquation },
         { "glBlendEquationSeparate", (uintptr_t)&glBlendEquationSeparate },
         { "glBlendEquationSeparateOES", (uintptr_t)&glBlendEquationSeparate },
-        { "glBlendFunc", (uintptr_t)&glBlendFuncWrap },
+        { "glBlendFunc", (uintptr_t)&glBlendFunc },
         { "glBlendFuncSeparate", (uintptr_t)&glBlendFuncSeparate },
         { "glBlendFuncSeparateOES", (uintptr_t)&glBlendFuncSeparate },
         { "glBufferData", (uintptr_t)&glBufferData },
@@ -741,8 +652,8 @@ so_default_dynlib default_dynlib[] = {
         { "glDisable", (uintptr_t)&glDisable },
         { "glDisableClientState", (uintptr_t)&glDisableClientState },
         { "glDisableVertexAttribArray", (uintptr_t)&glDisableVertexAttribArray },
-        { "glDrawArrays", (uintptr_t)&glDrawArraysWrap },
-        { "glDrawElements", (uintptr_t)&glDrawElementsWrap },
+        { "glDrawArrays", (uintptr_t)&glDrawArrays },
+        { "glDrawElements", (uintptr_t)&glDrawElements },
         { "glDrawTexfOES", (uintptr_t)&ret0 },
         { "glDrawTexfvOES", (uintptr_t)&ret0 },
         { "glDrawTexiOES", (uintptr_t)&ret0 },
@@ -923,7 +834,7 @@ so_default_dynlib default_dynlib[] = {
         { "glUniformMatrix4fv", (uintptr_t)&glUniformMatrix4fv },
         { "glUnmapBuffer", (uintptr_t)&glUnmapBuffer },
         { "glUnmapBufferOES", (uintptr_t)&glUnmapBuffer },
-        { "glUseProgram", (uintptr_t)&glUseProgramWrap },
+        { "glUseProgram", (uintptr_t)&glUseProgram },
         { "glValidateProgram", (uintptr_t)&ret0 },
         { "glVertexAttrib4f", (uintptr_t)&glVertexAttrib4f },
         { "glVertexAttribPointer", (uintptr_t)&glVertexAttribPointer },
