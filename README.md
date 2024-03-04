@@ -109,6 +109,8 @@ precisely:
 - (Optional) Install [CapUnlocker](https://github.com/GrapheneCt/CapUnlocker).
   It may give you a bit better performance.
 
+- (Optional) For trophies to be unlockable, install [NoTrpDRM][notrpdrm].
+
 Controls
 -----------------
 
@@ -193,7 +195,8 @@ Credits
 ----------------
 
 - [Andy "The FloW" Nguyen][flow] for the original .so loader.
-- [Rinnegatamante][rinne] for help with rendering issues and audio/video playing issues.
+- [Rinnegatamante][rinne] for help with rendering issues, audio/video
+  playing issues, video player code, trophy support code.
 - [CatoTheYounger][cato] for quality assurance.
 - [Once13One][o13o] for LiveArea assets.
 - [GrapheneCt][graph] for CapUnlocker.
@@ -228,6 +231,7 @@ the MIT license. See the [LICENSE](LICENSE) file for details.
 [shrkbrd]: https://github.com/Rinnegatamante/ShaRKBR33D/releases/latest
 [latest-release]: https://github.com/v-atamanenko/mc3-vita/releases/latest
 [issue]: https://github.com/v-atamanenko/mc3-vita/issues/new
+[notrpdrm]: https://github.com/Rinnegatamante/NoTrpDrm
 
 [flow]: https://github.com/TheOfficialFloW/
 [rinne]: https://github.com/Rinnegatamante/

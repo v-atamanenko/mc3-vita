@@ -1,3 +1,16 @@
+/*
+ * Copyright (C) 2023 Rinnegatamante
+ * Copyright (C) 2024 Volodymyr Atamanenko
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ */
+
+/**
+ * @file  player.h
+ * @brief Provides methods to work with SceAvPlayer
+ */
+
 #ifndef _PLAYER_H
 #define _PLAYER_H
 
