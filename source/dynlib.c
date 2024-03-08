@@ -134,6 +134,63 @@ void *dlsym_soloader(void * handle, const char * symbol) {
     return NULL;
 }
 
+float const_color[4];
+uint8_t is_constant_color = 0;
+void glBlendFunc_wrap(GLenum sfactor, GLenum dfactor) {
+    if (sfactor == 0x8001) {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        is_constant_color = 1;
+    } else {
+        glBlendFunc(sfactor, dfactor);
+        is_constant_color = 0;
+    }
+}
+
+void glBlendColor_wrap(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
+    const_color[0] = red;
+    const_color[1] = green;
+    const_color[2] = blue;
+    const_color[3] = red;
+}
+
+extern GLuint cur_program; // Hack to access current program faster without glGetIntegerv usage
+extern GLboolean blend_state; // Hack to access curent blending state faster without glIsEnabled usage
+void glDrawArrays_wrap(GLenum mode, GLint first, GLsizei count) {
+    if (mode != GL_POINTS) {
+        if (is_constant_color && blend_state) {
+            GLint idx = glGetAttribLocation(cur_program, "Color0");
+            if (idx != -1) {
+                glDisableVertexAttribArray(idx);
+                glVertexAttrib4fv(idx, const_color);
+                glDrawArrays(mode, first, count);
+                glEnableVertexAttribArray(idx);
+            } else {
+                glDrawArrays(mode, first, count);
+            }
+        } else {
+            glDrawArrays(mode, first, count);
+        }
+    }
+}
+
+void glDrawElements_wrap(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices) {
+    if (mode != GL_POINTS) {
+        if (is_constant_color && blend_state) {
+            GLint idx = glGetAttribLocation(cur_program, "Color0");
+            if (idx != -1) {
+                glDisableVertexAttribArray(idx);
+                glVertexAttrib4fv(idx, const_color);
+                glDrawElements(mode, count, type, indices);
+                glEnableVertexAttribArray(idx);
+            } else {
+                glDrawElements(mode, count, type, indices);
+            }
+        } else {
+            glDrawElements(mode, count, type, indices);
+        }
+    }
+}
+
 int32_t glGetUniformLocation_wrap(uint32_t prog, const char * name) {
     if (strcmp(name, "texture") == 0)
         return glGetUniformLocation(prog, "glitch_texture");
@@ -601,12 +658,12 @@ so_default_dynlib default_dynlib[] = {
         { "glBindRenderbuffer", (uintptr_t)&glBindRenderbuffer },
         { "glBindRenderbufferOES", (uintptr_t)&glBindRenderbuffer },
         { "glBindTexture", (uintptr_t)&glBindTexture },
-        { "glBlendColor", (uintptr_t)&ret0 },
+        { "glBlendColor", (uintptr_t)&glBlendColor_wrap },
         { "glBlendEquation", (uintptr_t)&glBlendEquation },
         { "glBlendEquationOES", (uintptr_t)&glBlendEquation },
         { "glBlendEquationSeparate", (uintptr_t)&glBlendEquationSeparate },
         { "glBlendEquationSeparateOES", (uintptr_t)&glBlendEquationSeparate },
-        { "glBlendFunc", (uintptr_t)&glBlendFunc },
+        { "glBlendFunc", (uintptr_t)&glBlendFunc_wrap },
         { "glBlendFuncSeparate", (uintptr_t)&glBlendFuncSeparate },
         { "glBlendFuncSeparateOES", (uintptr_t)&glBlendFuncSeparate },
         { "glBufferData", (uintptr_t)&glBufferData },
@@ -652,8 +709,8 @@ so_default_dynlib default_dynlib[] = {
         { "glDisable", (uintptr_t)&glDisable },
         { "glDisableClientState", (uintptr_t)&glDisableClientState },
         { "glDisableVertexAttribArray", (uintptr_t)&glDisableVertexAttribArray },
-        { "glDrawArrays", (uintptr_t)&glDrawArrays },
-        { "glDrawElements", (uintptr_t)&glDrawElements },
+        { "glDrawArrays", (uintptr_t)&glDrawArrays_wrap },
+        { "glDrawElements", (uintptr_t)&glDrawElements_wrap },
         { "glDrawTexfOES", (uintptr_t)&ret0 },
         { "glDrawTexfvOES", (uintptr_t)&ret0 },
         { "glDrawTexiOES", (uintptr_t)&ret0 },
