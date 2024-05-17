@@ -134,9 +134,7 @@ Known Issues
 shut down.
 2. ![cross] button works only in main menu. For in-game interaction prompts and
 pause menu you will have to use the touchscreen.
-3. The highlight effect on interactable objects is constant instead of flashing
-like in the original game due to some GXM limitations.
-4. In Mission 7, crosshair is not showing when the sniper rifle is zoomed in.
+3. In Mission 7, crosshair is not showing when the sniper rifle is zoomed in.
 You will have to no-scope it :^)
 
 Build Instructions (For Developers)
@@ -159,19 +157,6 @@ git clone https://github.com/vitasdk-softfp/vdpm
 
 All the required libraries should get installed automatically if you follow the
 installation process from https://vitasdk.org/.
-
-One thing you'll need to recompile by hand is [VitaGL](https://github.com/Rinnegatamante/vitaGL).
-In `source/draw.c` at the start of each `glDraw*` function, add the following line:
-
-```c
-if (mode == GL_POINTS) return;
-```
-
-And then compile and install using the following flags:
-
-```bash
-make SOFTFP_ABI=1 NO_DEBUG=1 NO_DMAC=1 -j$(nproc) install
-```
 
 After all these requirements are met, you can compile the loader with the
 following commands:
